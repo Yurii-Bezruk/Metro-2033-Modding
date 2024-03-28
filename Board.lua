@@ -59,6 +59,13 @@ Neighbouring = {
     PASSAGE = 'PASSAGE'
 }
 
+StationType = {
+    NEUTRAL = 'NEUTRAL',
+    POLIS = 'POLIS',
+    GANZA = 'GANZA',
+    ABANDONED = 'ABANDONED'
+}
+
 function findStationByPosition(position)   
     position = Global.call('roundVector', {vector=position, scale=2})
     for name, station in pairs(stations) do
@@ -69,13 +76,14 @@ function findStationByPosition(position)
 end
 
 function findStationByName(params)
-    log(params.name)
     return stations[params.name]
 end
 
 stations = {
     aeroport = {
         position = Vector(-9.13, 0.6, -8.30),
+        zone = Color.ORANGE,
+        type = StationType.NEUTRAL,
         production = Production.PORK,
         neighbours = {
             dynamo = Neighbouring.TUNNEL
@@ -83,6 +91,8 @@ stations = {
     },
     dynamo = {
         position = Vector(-8.29, 0.6, -7.39),
+        zone = Color.ORANGE,
+        type = StationType.NEUTRAL,
         production = Production.BULLET,
         neighbours = {
             aeroport = Neighbouring.TUNNEL,
@@ -91,6 +101,8 @@ stations = {
     },
     belorusskaya_green = {
         position = Vector(-7.29, 0.6, -6.48),
+        zone = Color.ORANGE,
+        type = StationType.NEUTRAL,
         production = Production.MUSHROOM,
         neighbours = {
             dynamo = Neighbouring.TUNNEL,
@@ -100,6 +112,8 @@ stations = {
     },
     belorusskaya_ganza = {
         position = Vector(-6.58, 0.6, -5.79),
+        zone = Color.ORANGE,
+        type = StationType.GANZA,
         production = Production.GENERIC,
         neighbours = {
             mendeleevskaya_ganza = Neighbouring.TUNNEL,
@@ -109,6 +123,8 @@ stations = {
     },
     mendeleevskaya_grey = {
         position = Vector(-9.39, 0.6, -3.05),
+        zone = Color.ORANGE,
+        type = StationType.NEUTRAL,
         production = Production.MUSHROOM,
         neighbours = {
             savelovskaya = Neighbouring.TUNNEL,
@@ -118,6 +134,8 @@ stations = {
     },    
     mendeleevskaya_ganza = {
         position = Vector(-8.64, 0.6, -2.35),
+        zone = Color.ORANGE,
+        type = StationType.GANZA,
         production = Production.GENERIC,
         neighbours = {
             belorusskaya_ganza = Neighbouring.TUNNEL,
@@ -127,6 +145,8 @@ stations = {
     },
     savelovskaya = {
         position = Vector(-10.62, 0.6, -3.06),
+        zone = Color.ORANGE,
+        type = StationType.NEUTRAL,
         production = Production.BULLET,
         neighbours = {
             mendeleevskaya_grey = Neighbouring.TUNNEL
@@ -134,6 +154,8 @@ stations = {
     },
     dostoevskaya_light_green = {
         position = Vector(-9.83, 0.6, 1.15),
+        zone = Color.GREEN,
+        type = StationType.NEUTRAL,
         production = Production.BULLET,
         neighbours = {
             trubnaya = Neighbouring.TUNNEL,
@@ -142,6 +164,8 @@ stations = {
     },
     dostoevskaya_ganza = {
         position = Vector(-8.83, 0.6, 1.13),
+        zone = Color.GREEN,
+        type = StationType.GANZA,
         production = Production.GENERIC,
         neighbours = {
             mendeleevskaya_ganza = Neighbouring.TUNNEL,
@@ -151,6 +175,8 @@ stations = {
     },
     prospect_mira_red = {
         position = Vector(-8.66, 0.6, 4.30),
+        zone = Color.GREEN,
+        type = StationType.NEUTRAL,
         production = Production.PORK,
         neighbours = {
             rizhskaya = Neighbouring.TUNNEL,
@@ -160,6 +186,8 @@ stations = {
     },    
     prospect_mira_ganza = {
         position = Vector(-7.93, 0.6, 3.56),
+        zone = Color.GREEN,
+        type = StationType.GANZA,
         production = Production.GENERIC,
         neighbours = {
             dostoevskaya_ganza = Neighbouring.TUNNEL,
@@ -169,6 +197,8 @@ stations = {
     },
     rizhskaya = {
         position = Vector(-9.81, 0.6, 4.26),
+        zone = Color.GREEN,
+        type = StationType.NEUTRAL,
         production = Production.BULLET,
         neighbours = {
             prospect_mira_red = Neighbouring.TUNNEL
@@ -176,6 +206,8 @@ stations = {
     },       
     komsomolskaya_red = {
         position = Vector(-7.28, 0.6, 6.16),
+        zone = Color.RED,
+        type = StationType.ABANDONED,
         production = Production.GENERIC,
         neighbours = {
             krasnoselskaya = Neighbouring.TUNNEL,
@@ -185,6 +217,8 @@ stations = {
     },
     komsomolskaya_ganza = {
         position = Vector(-6.58, 0.6, 5.48),
+        zone = Color.RED,
+        type = StationType.GANZA,
         production = Production.GENERIC,
         neighbours = {
             prospect_mira_ganza = Neighbouring.TUNNEL,
@@ -194,6 +228,8 @@ stations = {
     },    
     krasnoselskaya = {
         position = Vector(-8.36, 0.6, 7.08),
+        zone = Color.RED,
+        type = StationType.ABANDONED,
         production = Production.GENERIC,
         neighbours = {
             komsomolskaya_red = Neighbouring.TUNNEL
@@ -201,6 +237,8 @@ stations = {
     },
     beregovaya = {
         position = Vector(-4.19, 0.6, -9.87),
+        zone = Color.ORANGE,
+        type = StationType.NEUTRAL,
         production = Production.PORK,
         neighbours = {
             ulitsa_1905_goda = Neighbouring.TUNNEL
@@ -208,6 +246,8 @@ stations = {
     },
     ulitsa_1905_goda = {
         position = Vector(-3.35, 0.6, -9),
+        zone = Color.ORANGE,
+        type = StationType.NEUTRAL,
         production = Production.MUSHROOM,
         neighbours = {
             beregovaya = Neighbouring.TUNNEL,
@@ -216,6 +256,8 @@ stations = {
     },
     barricadnaya_ganza = {
         position = Vector(-2.56, 0.6, -8.20),
+        zone = Color.ORANGE,
+        type = StationType.GANZA,
         production = Production.GENERIC,
         neighbours = {
             belorusskaya_ganza = Neighbouring.TUNNEL,
@@ -225,6 +267,8 @@ stations = {
     },
     barricadnaya_pink = {
         position = Vector(-2.55, 0.6, -7.18),
+        zone = Color.ORANGE,
+        type = StationType.NEUTRAL,
         production = Production.BULLET,
         neighbours = {
             ulitsa_1905_goda = Neighbouring.TUNNEL,
@@ -234,6 +278,8 @@ stations = {
     },
     pushkinskaya = {
         position = Vector(-2.66, 0.6, -3),
+        zone = Color.GREEN,
+        type = StationType.NEUTRAL,
         production = Production.BULLET,
         neighbours = {
             barricadnaya_pink = Neighbouring.TUNNEL,
@@ -244,6 +290,8 @@ stations = {
     },
     chehovskaya = {
         position = Vector(-3.46, 0.6, -2.44),
+        zone = Color.GREEN,
+        type = StationType.NEUTRAL,
         production = Production.PORK,
         neighbours = {
             tsvetnoy_bulvar = Neighbouring.TUNNEL,
@@ -254,6 +302,8 @@ stations = {
     },
     tverskaya = {
         position = Vector(-2.67, 0.6, -1.97),
+        zone = Color.GREEN,
+        type = StationType.NEUTRAL,
         production = Production.MUSHROOM,
         neighbours = {
             mayakovskaya = Neighbouring.TUNNEL,
@@ -264,6 +314,8 @@ stations = {
     },
     mayakovskaya = {
         position = Vector(-4.94, 0.6, -4.19),
+        zone = Color.ORANGE,
+        type = StationType.NEUTRAL,
         production = Production.PORK,
         neighbours = {
             belorusskaya_green = Neighbouring.TUNNEL,
@@ -272,6 +324,8 @@ stations = {
     },
     tsvetnoy_bulvar = {
         position = Vector(-6.09, 0.6, 0.06),
+        zone = Color.GREEN,
+        type = StationType.NEUTRAL,
         production = Production.PORK,
         neighbours = {
             mendeleevskaya_grey = Neighbouring.TUNNEL,
@@ -281,6 +335,8 @@ stations = {
     },
     trubnaya = {
         position = Vector(-6.11, 0.6, 1.09),
+        zone = Color.GREEN,
+        type = StationType.NEUTRAL,
         production = Production.MUSHROOM,
         neighbours = {
             dostoevskaya_light_green = Neighbouring.TUNNEL,
@@ -290,6 +346,8 @@ stations = {
     },
     suharevskaya = {
         position = Vector(-6.81, 0.6, 3.57),
+        zone = Color.GREEN,
+        type = StationType.NEUTRAL,
         production = Production.MUSHROOM,
         neighbours = {
             prospect_mira_red = Neighbouring.TUNNEL,
@@ -298,6 +356,8 @@ stations = {
     },
     kransnye_vorota = {
         position = Vector(-5.71, 0.6, 4.57),
+        zone = Color.RED,
+        type = StationType.NEUTRAL,
         production = Production.BULLET,
         neighbours = {
             komsomolskaya_red = Neighbouring.TUNNEL,
@@ -306,6 +366,8 @@ stations = {
     },
     chistye_prudy = {
         position = Vector(-4.82, 0.6, 3.56),
+        zone = Color.RED,
+        type = StationType.NEUTRAL,
         production = Production.MUSHROOM,
         neighbours = {
             kransnye_vorota = Neighbouring.TUNNEL,
@@ -316,6 +378,8 @@ stations = {
     },
     sretenskiy_bulvar = {
         position = Vector(-4.35, 0.6, 2.63),
+        zone = Color.RED,
+        type = StationType.NEUTRAL,
         production = Production.PORK,
         neighbours = {
             trubnaya = Neighbouring.TUNNEL,
@@ -326,6 +390,8 @@ stations = {
     },
     turgenevskaya = {
         position = Vector(-3.77, 0.6, 3.6),
+        zone = Color.RED,
+        type = StationType.NEUTRAL,
         production = Production.BULLET,
         neighbours = {
             suharevskaya = Neighbouring.TUNNEL,
@@ -336,6 +402,8 @@ stations = {
     },
     lubyanka = {
         position = Vector(-2.49, 0.6, 1.43),
+        zone = Color.RED,
+        type = StationType.NEUTRAL,
         production = Production.PORK,
         neighbours = {
             chistye_prudy = Neighbouring.TUNNEL,
@@ -345,6 +413,8 @@ stations = {
     },    
     kuznetskiy_most = {
         position = Vector(-1.83, 0.6, 2.09),
+        zone = Color.RED,
+        type = StationType.NEUTRAL,
         production = Production.MUSHROOM,
         neighbours = {
             pushkinskaya = Neighbouring.TUNNEL,
@@ -354,6 +424,8 @@ stations = {
     },
     ohotniy_ryad = {
         position = Vector(-0.98, 0.6, -0.25),
+        zone = Color.RED,
+        type = StationType.NEUTRAL,
         production = Production.BULLET,
         neighbours = {
             lubyanka = Neighbouring.TUNNEL,
@@ -364,6 +436,8 @@ stations = {
     },
     teatralnaya = {
         position = Vector(-0.24, 0.6, 0.49),
+        zone = Color.RED,
+        type = StationType.NEUTRAL,
         production = Production.PORK,
         neighbours = {
             tverskaya = Neighbouring.TUNNEL,
@@ -374,6 +448,8 @@ stations = {
     },
     ploshad_revolutsii = {
         position = Vector(0.46, 0.6, 1.27),
+        zone = Color.RED,
+        type = StationType.NEUTRAL,
         production = Production.MUSHROOM,
         neighbours = {
             kurskaya_purple = Neighbouring.TUNNEL,
@@ -384,6 +460,8 @@ stations = {
     },
     kitay_gorod_orange = {
         position = Vector(1.12, 0.6, 3.59),
+        zone = Color.BROWN,
+        type = StationType.NEUTRAL,
         production = Production.BULLET,
         neighbours = {
             turgenevskaya = Neighbouring.TUNNEL,
@@ -393,6 +471,8 @@ stations = {
     },
     kitay_gorod_pink = {
         position = Vector(1.08, 0.6, 5.07),
+        zone = Color.BROWN,
+        type = StationType.NEUTRAL,
         production = Production.MUSHROOM,
         neighbours = {
             kuznetskiy_most = Neighbouring.TUNNEL,
@@ -402,6 +482,8 @@ stations = {
     },
     kurskaya_ganza = {
         position = Vector(0.45, 0.6, 8),
+        zone = Color.BROWN,
+        type = StationType.GANZA,
         production = Production.GENERIC,
         neighbours = {
             komsomolskaya_ganza = Neighbouring.TUNNEL,
@@ -412,6 +494,8 @@ stations = {
     },
     kurskaya_purple = {
         position = Vector(0.46, 0.6, 9.01),
+        zone = Color.BROWN,
+        type = StationType.NEUTRAL,
         production = Production.MUSHROOM,
         neighbours = {
             ploshad_revolutsii = Neighbouring.TUNNEL,
@@ -422,6 +506,8 @@ stations = {
     },
     chkalovskaya = {
         position = Vector(1.32, 0.6, 8.48),
+        zone = Color.BROWN,
+        type = StationType.NEUTRAL,
         production = Production.BULLET,
         neighbours = {
             sretenskiy_bulvar = Neighbouring.TUNNEL,
@@ -432,6 +518,8 @@ stations = {
     },
     baumanskaya = {
         position = Vector(-0.73, 0.6, 10.18),
+        zone = Color.BROWN,
+        type = StationType.NEUTRAL,
         production = Production.PORK,
         neighbours = {
             kurskaya_purple = Neighbouring.TUNNEL,
@@ -440,6 +528,8 @@ stations = {
     },
     electrozavodskaya = {
         position = Vector(-1.6, 0.6, 11.03),
+        zone = Color.BROWN,
+        type = StationType.NEUTRAL,
         production = Production.BULLET,
         neighbours = {
             baumanskaya = Neighbouring.TUNNEL
@@ -447,6 +537,8 @@ stations = {
     },
     rimskaya = {
         position = Vector(3.48, 0.6, 9.7),
+        zone = Color.BROWN,
+        type = StationType.NEUTRAL,
         production = Production.PORK,
         neighbours = {
             chkalovskaya = Neighbouring.TUNNEL,
@@ -456,6 +548,8 @@ stations = {
     },    
     ploshyad_illicha = {
         position = Vector(4.5, 0.6, 9.67),
+        zone = Color.BROWN,
+        type = StationType.ABANDONED,
         production = Production.GENERIC,
         neighbours = {
             marksistskaya = Neighbouring.TUNNEL,
@@ -464,6 +558,8 @@ stations = {
     },    
     proletarskaya = {
         position = Vector(5.78, 0.6, 9.67),
+        zone = Color.BROWN,
+        type = StationType.ABANDONED,
         production = Production.GENERIC,
         neighbours = {
             taganskaya_pink = Neighbouring.TUNNEL,
@@ -472,6 +568,8 @@ stations = {
     },
     krestyanskaya_zastava = {
         position = Vector(6.77, 0.6, 9.67),
+        zone = Color.BROWN,
+        type = StationType.ABANDONED,
         production = Production.GENERIC,
         neighbours = {
             rimskaya = Neighbouring.TUNNEL,
@@ -480,6 +578,8 @@ stations = {
     },
     taganskaya_pink = {
         position = Vector(3.54, 0.6, 7.54),
+        zone = Color.BROWN,
+        type = StationType.NEUTRAL,
         production = Production.PORK,
         neighbours = {
             kitay_gorod_pink = Neighbouring.TUNNEL,
@@ -490,6 +590,8 @@ stations = {
     },
     taganskaya_ganza = {
         position = Vector(4.04, 0.6, 6.57),
+        zone = Color.BROWN,
+        type = StationType.GANZA,
         production = Production.GENERIC,
         neighbours = {
             kurskaya_ganza = Neighbouring.TUNNEL,
@@ -500,6 +602,8 @@ stations = {
     },    
     marksistskaya = {
         position = Vector(4.56, 0.6, 7.49),
+        zone = Color.BROWN,
+        type = StationType.NEUTRAL,
         production = Production.MUSHROOM,
         neighbours = {
             ploshyad_illicha = Neighbouring.TUNNEL,
@@ -510,6 +614,8 @@ stations = {
     },
     tretyakovskaya_yellow = {
         position = Vector(4.57, 0.6, 1.53),
+        zone = Color.YELLOW,
+        type = StationType.NEUTRAL,
         production = Production.BULLET,
         neighbours = {
             marksistskaya = Neighbouring.TUNNEL,
@@ -519,6 +625,8 @@ stations = {
     },    
     tretyakovskaya_orange = {
         position = Vector(4.09, 0.6, 0.61),
+        zone = Color.YELLOW,
+        type = StationType.NEUTRAL,
         production = Production.MUSHROOM,
         neighbours = {
             kitay_gorod_orange = Neighbouring.TUNNEL,
@@ -529,6 +637,8 @@ stations = {
     },
     novokuznetskaya = {
         position = Vector(5.12, 0.6, 0.57),
+        zone = Color.YELLOW,
+        type = StationType.NEUTRAL,
         production = Production.PORK,
         neighbours = {
             teatralnaya = Neighbouring.TUNNEL,
@@ -539,6 +649,8 @@ stations = {
     },
     borovitskaya = {
         position = Vector(1.26, 0.6, -2.42),
+        zone = Color.BLACK,
+        type = StationType.POLIS,
         production = Production.GENERIC,
         neighbours = {
             chehovskaya = Neighbouring.TUNNEL,
@@ -550,6 +662,8 @@ stations = {
     },
     biblioteka_imeni_lenina = {
         position = Vector(0.52, 0.6, -1.68),
+        zone = Color.BLACK,
+        type = StationType.POLIS,
         production = Production.GENERIC,
         neighbours = {
             ohotniy_ryad = Neighbouring.TUNNEL,
@@ -561,6 +675,8 @@ stations = {
     },
     aleksandrovskiy_sad = {
         position = Vector(-0.24, 0.6, -2.42),
+        zone = Color.BLACK,
+        type = StationType.POLIS,
         production = Production.GENERIC,
         neighbours = {
             arbatskaya_blue = Neighbouring.TUNNEL,
@@ -571,6 +687,8 @@ stations = {
     },
     arbatskaya_purple = {
         position = Vector(0.5, 0.6, -3.22),
+        zone = Color.BLACK,
+        type = StationType.POLIS,
         production = Production.GENERIC,
         neighbours = {
             ploshad_revolutsii = Neighbouring.TUNNEL,
@@ -582,6 +700,8 @@ stations = {
     },    
     arbatskaya_blue = {
         position = Vector(-0.14, 0.6, -4.11),
+        zone = Color.BLUE,
+        type = StationType.NEUTRAL,
         production = Production.BULLET,
         neighbours = {
             aleksandrovskiy_sad = Neighbouring.TUNNEL,
@@ -590,6 +710,8 @@ stations = {
     },    
     smolenskaya_purple = {
         position = Vector(0.54, 0.6, -5.2),
+        zone = Color.BLUE,
+        type = StationType.NEUTRAL,
         production = Production.PORK,
         neighbours = {
             arbatskaya_purple = Neighbouring.TUNNEL,
@@ -598,6 +720,8 @@ stations = {
     },
     smolenskaya_blue = {
         position = Vector(-0.07, 0.6, -5.85),
+        zone = Color.BLUE,
+        type = StationType.NEUTRAL,
         production = Production.PORK,
         neighbours = {
             arbatskaya_blue = Neighbouring.TUNNEL,
@@ -606,6 +730,8 @@ stations = {
     },    
     kievskaya_purple = {
         position = Vector(3.71, 0.6, -8.28),
+        zone = Color.BLUE,
+        type = StationType.NEUTRAL,
         production = Production.BULLET,
         neighbours = {
             smolenskaya_purple = Neighbouring.TUNNEL,
@@ -615,6 +741,8 @@ stations = {
     },
     kievskaya_blue = {
         position = Vector(2.26, 0.6, -8.25),
+        zone = Color.BLUE,
+        type = StationType.NEUTRAL,
         production = Production.MUSHROOM,
         neighbours = {
             smolenskaya_blue = Neighbouring.TUNNEL,
@@ -625,6 +753,8 @@ stations = {
     },
     kievskaya_ganza = {
         position = Vector(2.96, 0.6, -7.55),
+        zone = Color.BLUE,
+        type = StationType.GANZA,
         production = Production.GENERIC,
         neighbours = {
             barricadnaya_ganza = Neighbouring.TUNNEL,
@@ -635,6 +765,8 @@ stations = {
     },    
     studencheskaya = {
         position = Vector(4.54, 0.6, -10.48),
+        zone = Color.BLUE,
+        type = StationType.ABANDONED,
         production = Production.GENERIC,
         neighbours = {
             kievskaya_blue = Neighbouring.TUNNEL
@@ -642,6 +774,8 @@ stations = {
     },
     park_kultury_ganza = {
         position = Vector(4.97, 0.6, -6.08),
+        zone = Color.BLUE,
+        type = StationType.GANZA,
         production = Production.GENERIC,
         neighbours = {
             kievskaya_ganza = Neighbouring.TUNNEL,
@@ -651,6 +785,8 @@ stations = {
     },
     park_kultury_red = {
         position = Vector(4.23, 0.6, -5.38),
+        zone = Color.BLUE,
+        type = StationType.NEUTRAL,
         production = Production.PORK,
         neighbours = {
             kropotkinskaya = Neighbouring.TUNNEL,
@@ -660,6 +796,8 @@ stations = {
     },
     kropotkinskaya = {
         position = Vector(3.32, 0.6, -4.36),
+        zone = Color.BLUE,
+        type = StationType.NEUTRAL,
         production = Production.MUSHROOM,
         neighbours = {
             biblioteka_imeni_lenina = Neighbouring.TUNNEL,
@@ -668,6 +806,8 @@ stations = {
     },
     frunzenskaya = {
         position = Vector(6.15, 0.6, -7.26),
+        zone = Color.BLUE,
+        type = StationType.NEUTRAL,
         production = Production.BULLET,
         neighbours = {
             sportivnaya = Neighbouring.TUNNEL,
@@ -676,6 +816,8 @@ stations = {
     },
     sportivnaya = {
         position = Vector(7.27, 0.6, -8.35),
+        zone = Color.BLUE,
+        type = StationType.NEUTRAL,
         production = Production.MUSHROOM,
         neighbours = {
             frunzenskaya = Neighbouring.TUNNEL
@@ -683,6 +825,8 @@ stations = {
     },
     oktyabrskaya_ganza = {
         position = Vector(7.20, 0.6, -2.46),
+        zone = Color.YELLOW,
+        type = StationType.GANZA,
         production = Production.GENERIC,
         neighbours = {
             park_kultury_ganza = Neighbouring.TUNNEL,
@@ -692,6 +836,8 @@ stations = {
     },
     oktyabrskaya_orange = {
         position = Vector(6.45, 0.6, -1.76),
+        zone = Color.YELLOW,
+        type = StationType.NEUTRAL,
         production = Production.PORK,
         neighbours = {
             tretyakovskaya_orange = Neighbouring.TUNNEL,
@@ -701,6 +847,8 @@ stations = {
     },
     shabolovskaya = {
         position = Vector(8.39, 0.6, -2.48),
+        zone = Color.YELLOW,
+        type = StationType.NEUTRAL,
         production = Production.MUSHROOM,
         neighbours = {
             oktyabrskaya_orange = Neighbouring.TUNNEL
@@ -708,6 +856,8 @@ stations = {
     },
     serpuhovskaya_ganza = {
         position = Vector(7.43, 0.6, 1.09),
+        zone = Color.YELLOW,
+        type = StationType.GANZA,
         production = Production.GENERIC,
         neighbours = {
             oktyabrskaya_ganza = Neighbouring.TUNNEL,
@@ -717,6 +867,8 @@ stations = {
     },
     serpuhovskaya_grey = {
         position = Vector(8.5, 0.6, 1.07),
+        zone = Color.YELLOW,
+        type = StationType.NEUTRAL,
         production = Production.MUSHROOM,
         neighbours = {
             tulskaya = Neighbouring.TUNNEL,
@@ -726,6 +878,8 @@ stations = {
     },
     tulskaya = {
         position = Vector(9.76, 0.6, 1.12),
+        zone = Color.YELLOW,
+        type = StationType.ABANDONED,
         production = Production.GENERIC,
         neighbours = {
             serpuhovskaya_grey = Neighbouring.TUNNEL
@@ -733,6 +887,8 @@ stations = {
     },
     polyanka = {
         position = Vector(4.36, 0.6, -1.97),
+        zone = Color.YELLOW,
+        type = StationType.NEUTRAL,
         production = Production.BULLET,
         neighbours = {
             borovitskaya = Neighbouring.TUNNEL,
@@ -741,6 +897,8 @@ stations = {
     },
     paveletskaya_ganza = {
         position = Vector(7.03, 0.6, 2.66),
+        zone = Color.YELLOW,
+        type = StationType.GANZA,
         production = Production.GENERIC,
         neighbours = {
             serpuhovskaya_ganza = Neighbouring.TUNNEL,
@@ -750,6 +908,8 @@ stations = {
     },
     paveletskaya_green = {
         position = Vector(7.77, 0.6, 3.38),
+        zone = Color.YELLOW,
+        type = StationType.NEUTRAL,
         production = Production.BULLET,
         neighbours = {
             novokuznetskaya = Neighbouring.TUNNEL,
@@ -759,6 +919,8 @@ stations = {
     },
     avtozavodskaya = {
         position = Vector(8.61, 0.6, 4.23),
+        zone = Color.YELLOW,
+        type = StationType.NEUTRAL,
         production = Production.PORK,
         neighbours = {
             paveletskaya_green = Neighbouring.TUNNEL
