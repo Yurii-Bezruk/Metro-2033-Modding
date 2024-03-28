@@ -68,6 +68,11 @@ function findStationByPosition(position)
     end
 end
 
+function findStationByName(params)
+    log(params.name)
+    return stations[params.name]
+end
+
 stations = {
     aeroport = {
         position = Vector(-9.13, 0.6, -8.30),
@@ -584,7 +589,7 @@ stations = {
         }
     },    
     smolenskaya_purple = {
-        position = Vector(0.53, 0.6, -5.18),
+        position = Vector(0.54, 0.6, -5.2),
         production = Production.PORK,
         neighbours = {
             arbatskaya_purple = Neighbouring.TUNNEL,

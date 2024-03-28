@@ -4,6 +4,8 @@ function onLoad()
 
     ROOT_BAG = getObjectFromGUID('c5c908')
     BOARD = getObjectFromGUID('b6a25e')
+    t = BOARD.call('findStationByName', {name='aeroport'})
+    log(t)
 end
 
 function clearTableExtensions()
@@ -16,7 +18,6 @@ end
 function onObjectStateChange(object, old_state_guid)
     ROOT_BAG.call('setScriptToObject', object)
 end
-
 
 -- ------------------------------------------------------------
 -- Util functions
