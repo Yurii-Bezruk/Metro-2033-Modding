@@ -1,13 +1,25 @@
-local script = [[  
+local script = [[
+    BOARD_GUID = Global.getVar('BOARD_GUID')
     
-    function onDrop(player_color)
-        BOARD = Global.getVar('BOARD')
-        Production = BOARD.getTable('Production')
+    function onLoad()
+        -- ------------------------------------------------------------
+        -- Importing functions
+        -- ------------------------------------------------------------
+        BOARD = {
+            obj = getObjectFromGUID(BOARD_GUID),
+            findStationByPosition = function(self, position)
+                return self.obj.call('findStationByPosition', position)
+            end
+        }
+        Production = BOARD.obj.getTable('Production')
+    end
+
+    function onDrop(player_color)        
         Wait.time(|| delayedOnDrop(), 0.5)
     end
 
     function delayedOnDrop()
-        station = BOARD.call('findStationByPosition', self.getPosition())
+        station = BOARD:findStationByPosition(self.getPosition())
         if station == nil then
             state = Production.GENERIC
         else
@@ -33,5 +45,3 @@ end
 function setScriptToObject(object)
     object.setLuaScript(script)
 end
-
-
