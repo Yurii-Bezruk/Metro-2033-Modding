@@ -15,11 +15,10 @@ end
 -- ------------------------------------------------------------
 
 function clearAllHighlights()
-  self.setVectorLines({})
+    self.setVectorLines({})
 end
 
-function highlight(position)
-    clearAllHighlights()
+function highlightPosition(position)
     position = position:copy() * 0.485
     drawCircle({
         radius    = 0.23, 
@@ -60,6 +59,33 @@ end
 -- Stations
 -- ------------------------------------------------------------
 
+function findStationByPosition(position)   
+    position = Global:roundVector(position, 2)
+    for name, station in pairs(stations) do
+        if station.position.x == position.x and station.position.z == position.z then
+            return station
+        end
+    end
+end
+
+function findStationByName(name)
+    return stations[name]
+end
+
+function highlight(name)
+    highlightPosition(stations[name].position)
+end
+
+function highlightPossibleMoves(position, depth)
+    station = findStationByPosition(position)
+    if station == nil then
+        return
+    end
+    for name, type in pairs(station.neighbours) do
+        highlight(name)
+    end
+end
+
 Production = {
     BULLET = 1,
     PORK = 2, 
@@ -79,18 +105,6 @@ StationType = {
     ABANDONED = 'ABANDONED'
 }
 
-function findStationByPosition(position)   
-    position = Global:roundVector(position, 2)
-    for name, station in pairs(stations) do
-        if station.position.x == position.x and station.position.z == position.z then
-            return station
-        end
-    end
-end
-
-function findStationByName(name)
-    return stations[name]
-end
 
 stations = {
     aeroport = {
@@ -948,3 +962,8 @@ stations = {
 function findStationByNameExported(args)
     return findStationByName(args.name)
 end
+
+function highlightPossibleMovesExported(args)
+    return highlightPossibleMoves(args.position, args.depth)
+end
+

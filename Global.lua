@@ -19,13 +19,10 @@ function onLoad()
         findStationByName = function(self, name)
             return self.obj.call('findStationByNameExported', {name = name})
         end,
-        highlight = function(self, position)
-            self.obj.call('highlight', position)
+        highlight = function(self, name)
+            self.obj.call('highlight', name)
         end
     }
-
-    t = BOARD:findStationByName('dynamo')
-    BOARD:highlight(t.position)
 end
 
 function clearTableExtensions()
