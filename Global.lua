@@ -1,11 +1,31 @@
+ROOT_BAG_GUID = 'c5c908'
+BOARD_GUID = 'b6a25e'
 
 function onLoad()
     clearTableExtensions()
 
-    ROOT_BAG = getObjectFromGUID('c5c908')
-    BOARD = getObjectFromGUID('b6a25e')
-    t = BOARD.call('findStationByName', {name='aeroport'})
-    log(t)
+    -- ------------------------------------------------------------
+    -- Importing functions
+    -- ------------------------------------------------------------
+    ROOT_BAG = {
+        obj = getObjectFromGUID(ROOT_BAG_GUID),
+        setScriptToObject = function(self, object)
+            return self.obj.call('setScriptToObject', object)
+        end
+    }
+
+    BOARD = {
+        obj = getObjectFromGUID(BOARD_GUID),
+        findStationByName = function(self, name)
+            return self.obj.call('findStationByNameExported', {name = name})
+        end,
+        highlight = function(self, position)
+            self.obj.call('highlight', position)
+        end
+    }
+
+    t = BOARD:findStationByName('dynamo')
+    BOARD:highlight(t.position)
 end
 
 function clearTableExtensions()
@@ -16,7 +36,7 @@ function clearTableExtensions()
 end
 
 function onObjectStateChange(object, old_state_guid)
-    ROOT_BAG.call('setScriptToObject', object)
+    ROOT_BAG:setScriptToObject(object)
 end
 
 -- ------------------------------------------------------------
@@ -38,12 +58,11 @@ function round(x, scale)
     return math.floor(x * 10^scale) / 10^scale
 end
 
--- params {Vector, int}
-function roundVector(params)
+function roundVector(vector, scale)
     return Vector(
-        round(params.vector.x, params.scale), 
-        round(params.vector.y, params.scale),
-        round(params.vector.z, params.scale)
+        round(vector.x, scale), 
+        round(vector.y, scale),
+        round(vector.z, scale)
     )
 end
 
@@ -53,4 +72,11 @@ function size(t)
         size = size + 1 
     end
     return size
+end
+
+-- ------------------------------------------------------------
+-- Exporting functions
+-- ------------------------------------------------------------
+function roundVectorExported(args)
+    return roundVector(args.vector, args.scale)
 end

@@ -1,3 +1,15 @@
+function onLoad()
+    -- ------------------------------------------------------------
+    -- Importing functions
+    -- ------------------------------------------------------------
+    Global = {
+        obj = Global,
+        roundVector = function(self, vector, scale)
+            return self.obj.call('roundVectorExported', {vector=vector, scale=scale})
+        end
+    }
+end
+
 -- ------------------------------------------------------------
 -- Drawing
 -- ------------------------------------------------------------
@@ -7,10 +19,11 @@ function clearAllHighlights()
 end
 
 function highlight(position)
+    clearAllHighlights()
     position = position:copy() * 0.485
     drawCircle({
-        radius    = 0.2, 
-        color     = Color(1, 1, 1),
+        radius    = 0.23, 
+        color     = Color(249, 255, 0, 1),
         thickness = 0.02,
         position  = Vector(position.x, 0.6, position.z)
     })
@@ -67,7 +80,7 @@ StationType = {
 }
 
 function findStationByPosition(position)   
-    position = Global.call('roundVector', {vector=position, scale=2})
+    position = Global:roundVector(position, 2)
     for name, station in pairs(stations) do
         if station.position.x == position.x and station.position.z == position.z then
             return station
@@ -75,8 +88,8 @@ function findStationByPosition(position)
     end
 end
 
-function findStationByName(params)
-    return stations[params.name]
+function findStationByName(name)
+    return stations[name]
 end
 
 stations = {
@@ -927,3 +940,11 @@ stations = {
         }
     }
 }
+
+-- ------------------------------------------------------------
+-- Exporting functions
+-- ------------------------------------------------------------
+
+function findStationByNameExported(args)
+    return findStationByName(args.name)
+end
