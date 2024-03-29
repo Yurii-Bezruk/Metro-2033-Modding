@@ -18,11 +18,14 @@ function clearAllHighlights()
     self.setVectorLines({})
 end
 
-function highlightPosition(position)
+function highlightPosition(position, color)
     position = position:copy() * 0.485
+    if color == nil then
+        color = Color.YELLOW
+    end
     drawCircle({
         radius    = 0.23, 
-        color     = Color(249, 255, 0, 1),
+        color     = color,
         thickness = 0.02,
         position  = Vector(position.x, 0.6, position.z)
     })
@@ -76,7 +79,7 @@ function highlight(name)
     highlightPosition(stations[name].position)
 end
 
-function highlightPossibleMoves(position, depth)
+function highlightPossibleMoves(position, speed)
     station = findStationByPosition(position)
     if station == nil then
         return
@@ -84,6 +87,7 @@ function highlightPossibleMoves(position, depth)
     for name, type in pairs(station.neighbours) do
         highlight(name)
     end
+    highlightPosition(position, Color.GREEN)
 end
 
 Production = {
@@ -964,6 +968,6 @@ function findStationByNameExported(args)
 end
 
 function highlightPossibleMovesExported(args)
-    return highlightPossibleMoves(args.position, args.depth)
+    return highlightPossibleMoves(args.position, args.speed)
 end
 
