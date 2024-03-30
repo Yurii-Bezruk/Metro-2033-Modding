@@ -6,6 +6,9 @@ function onLoad()
         obj = Global,
         roundVector = function(self, vector, scale)
             return self.obj.call('roundVectorExported', {vector=vector, scale=scale})
+        end,
+        tableContains = function(self, table, elem)
+            return self.obj.call('tableContainsExported', {table=table, elem=elem})
         end
     }
 end
@@ -98,8 +101,13 @@ function findPossibleMoves(name, speed, set)
     if speed == 0 then
         return
     end
+    local station = stations[name]
+    local players = getSeatedPlayers()
+    if not Global:tableContains(players, station.zone:toString())
+        and station.type != StationType.POLIS then
+        --return
+    end
     set:put(name)
-    station = stations[name]  
     for neighbour_name, type in pairs(station.neighbours) do
         if not set:contains(neighbour_name) then
             findPossibleMoves(neighbour_name, speed - 1, set)
