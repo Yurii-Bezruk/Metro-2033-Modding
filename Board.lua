@@ -26,7 +26,7 @@ function highlightPosition(position, color)
     drawCircle({
         radius    = 0.23, 
         color     = color,
-        thickness = 0.02,
+        thickness = 0.03,
         position  = Vector(position.x, 0.6, position.z)
     })
 end
@@ -66,7 +66,7 @@ function findStationByPosition(position)
     position = Global:roundVector(position, 2)
     for name, station in pairs(stations) do
         if station.position.x == position.x and station.position.z == position.z then
-            return station
+            return name, station
         end
     end
 end
@@ -80,14 +80,31 @@ function highlight(name)
 end
 
 function highlightPossibleMoves(position, speed)
-    station = findStationByPosition(position)
+    origin_name, station = findStationByPosition(position)
     if station == nil then
         return
     end
+    set = Set()
     for name, type in pairs(station.neighbours) do
+        findPossibleMoves(name, speed, set)
+    end
+    for _, name in ipairs(set:getValues()) do
         highlight(name)
     end
     highlightPosition(position, Color.GREEN)
+end
+
+function findPossibleMoves(name, speed, set)
+    if speed == 0 then
+        return
+    end
+    set:put(name)
+    station = stations[name]  
+    for neighbour_name, type in pairs(station.neighbours) do
+        if not set:contains(neighbour_name) then
+            findPossibleMoves(neighbour_name, speed - 1, set)
+        end
+    end
 end
 
 Production = {
@@ -960,8 +977,52 @@ stations = {
 }
 
 -- ------------------------------------------------------------
+-- Set structure
+-- ------------------------------------------------------------
+
+function Set()
+    return {
+        size = 0,
+        array = {},
+        put = function (self, elem)
+            if self.array[elem] then
+                return
+            end
+            self.array[elem] = true
+            self.size = self.size + 1
+        end,
+        remove = function (self, elem)
+            if self.array[elem] then
+                self.array[elem] = false
+                self.size = self.size - 1
+            end
+        end,
+        contains = function (self)
+            if self.array[elem] then
+                return true
+            end
+            return false
+        end,
+        getValues = function (self)
+            local keys = {}
+            for key, value in pairs(self.array) do
+                if value then
+                    table.insert(keys, key)
+                end
+            end
+            return keys
+        end
+    }
+end
+
+-- ------------------------------------------------------------
 -- Exporting functions
 -- ------------------------------------------------------------
+
+function findStationByPositionExported(position)
+    name, station = findStationByPosition(position)
+    return {name = name, station = station}
+end
 
 function findStationByNameExported(args)
     return findStationByName(args.name)
