@@ -6,8 +6,8 @@ function onLoad()
     -- ------------------------------------------------------------
     BOARD = {
         obj = getObjectFromGUID(BOARD_GUID),
-        highlightPossibleMoves = function(self, position, depth)
-            self.obj.call('highlightPossibleMovesExported', {position=position, depth=depth})
+        highlightPossibleMoves = function(self, position, speed)
+            self.obj.call('highlightPossibleMovesExported', {position=position, speed=speed})
         end,
         clearAllHighlights = function(self)
             self.obj.call('clearAllHighlights')

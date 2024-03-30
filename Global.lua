@@ -2,7 +2,7 @@ ROOT_BAG_GUID = 'c5c908'
 BOARD_GUID = 'b6a25e'
 
 function onLoad()
-    clearTableExtensions()
+    clearDeskExtensions()
 
     -- ------------------------------------------------------------
     -- Importing functions
@@ -25,7 +25,7 @@ function onLoad()
     }
 end
 
-function clearTableExtensions()
+function clearDeskExtensions()
     ADDITION_BOARDS = getObjectsFromGUIDs({'15ef07', '1c3b49', 'bb444e', '918452'})
     for _, b in ipairs(ADDITION_BOARDS) do
         b.setSnapPoints({})

@@ -8,7 +8,8 @@ local script = [[
         BOARD = {
             obj = getObjectFromGUID(BOARD_GUID),
             findStationByPosition = function(self, position)
-                return self.obj.call('findStationByPosition', position)
+                res = self.obj.call('findStationByPositionExported', position)
+                return res.name, res.station
             end
         }
         Production = BOARD.obj.getTable('Production')
@@ -19,7 +20,7 @@ local script = [[
     end
 
     function delayedOnDrop()
-        station = BOARD:findStationByPosition(self.getPosition())
+        name, station = BOARD:findStationByPosition(self.getPosition())
         if station == nil then
             state = Production.GENERIC
         else
