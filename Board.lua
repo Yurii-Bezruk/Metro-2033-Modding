@@ -66,7 +66,7 @@ end
 -- ------------------------------------------------------------
 
 function findStationByPosition(position)   
-    position = Global:roundVector(position, 2)
+    local position = Global:roundVector(position, 2)
     for name, station in pairs(stations) do
         if station.position.x == position.x and station.position.z == position.z then
             return name, station

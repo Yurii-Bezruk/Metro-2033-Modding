@@ -1,5 +1,6 @@
 ROOT_BAG_GUID = 'c5c908'
 BOARD_GUID = 'b6a25e'
+ADMIN_BOARD_GUID = '68c9ad'
 
 function onLoad()
     clearDeskExtensions()
