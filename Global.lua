@@ -1,5 +1,6 @@
 ROOT_BAG_GUID = 'c5c908'
 BOARD_GUID = 'b6a25e'
+ADMIN_BOARD_GUID = '68c9ad'
 
 function onLoad()
     clearDeskExtensions()
@@ -63,7 +64,7 @@ function roundVector(vector, scale)
     )
 end
 
-function size(t)
+function tableSize(t)
     local size = 0
     for i in pairs(t) do 
         size = size + 1 
@@ -71,9 +72,23 @@ function size(t)
     return size
 end
 
+function tableContains(table, elem)
+    for i, value in ipairs(table) do 
+        if value == elem then
+            return true
+        end
+    end
+    return false
+end
+
+
 -- ------------------------------------------------------------
 -- Exporting functions
 -- ------------------------------------------------------------
 function roundVectorExported(args)
     return roundVector(args.vector, args.scale)
+end
+
+function tableContainsExported(args)
+    return tableContains(args.table, args.elem)
 end
