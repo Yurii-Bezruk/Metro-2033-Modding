@@ -1,4 +1,8 @@
+local heroNameScript = [[
+    NAME = ]]
+
 local heroFigureScript = [[
+
     BOARD_GUID = Global.getVar('BOARD_GUID')
     ADMIN_BOARD_GUID = Global.getVar('ADMIN_BOARD_GUID')
     
@@ -8,8 +12,8 @@ local heroFigureScript = [[
         -- ------------------------------------------------------------
         BOARD = {
             obj = getObjectFromGUID(BOARD_GUID),
-            highlightPossibleMoves = function(self, position, speed)
-                self.obj.call('highlightPossibleMovesExported', {position=position, speed=speed})
+            highlightPossibleMoves = function(self, position, speed, isAnna)
+                self.obj.call('highlightPossibleMovesExported', {position=position, speed=speed, isAnna=isAnna})
             end,
             clearAllHighlights = function(self)
                 self.obj.call('clearAllHighlights')
@@ -30,7 +34,8 @@ local heroFigureScript = [[
 
     function onPickUp(player_color)
         local speed = ADMIN_BOARD:getHeroSpeed(self)
-        BOARD:highlightPossibleMoves(self.getPosition(), speed)
+        local isAnna = NAME == 'anna'
+        BOARD:highlightPossibleMoves(self.getPosition(), speed, isAnna)
     end
 ]]
 
@@ -70,7 +75,8 @@ function onLoad()
     }
 
     for name, hero in pairs(heroes) do
-        hero.figure.setLuaScript(heroFigureScript)
+        local figureScript = heroNameScript .. "'" .. name .. "'" .. heroFigureScript
+        hero.figure.setLuaScript(figureScript)
         hero.card = getObjectFromGUID(hero.card_guid)
         if hero.card != nil then
             hero.card.setLuaScript(heroCardScript)
