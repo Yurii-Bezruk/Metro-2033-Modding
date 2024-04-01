@@ -82,37 +82,46 @@ function highlight(name)
     highlightPosition(stations[name].position)
 end
 
-function highlightPossibleMoves(position, speed)
-    origin_name, station = findStationByPosition(position)
+function highlightPossibleMoves(position, speed, isAnna)
+    local origin_name, station = findStationByPosition(position)
     if station == nil then
         return
     end
-    set = Set()
-    for name, type in pairs(station.neighbours) do
-        findPossibleMoves(name, speed, set)
-    end
-    for _, name in ipairs(set:getValues()) do
-        highlight(name)
+    local activeZones = getSeatedPlayers()
+    local possibleMoves = findPossibleMoves(origin_name, speed, activeZones, isAnna)
+    for _, station_name in ipairs(possibleMoves) do
+        highlight(station_name)
     end
     highlightPosition(position, Color.GREEN)
 end
 
-function findPossibleMoves(name, speed, set)
-    if speed == 0 then
-        return
-    end
-    local station = stations[name]
-    local players = getSeatedPlayers()
-    if not Global:tableContains(players, station.zone:toString())
-        and station.type != StationType.POLIS then
-        --return
-    end
-    set:put(name)
-    for neighbour_name, type in pairs(station.neighbours) do
-        if not set:contains(neighbour_name) then
-            findPossibleMoves(neighbour_name, speed - 1, set)
+function findPossibleMoves(name, speed, activeZones, isAnna)
+    local set = Set()
+    local q = Queue()
+    q:put({station=stations[name], name=name, speed=speed})
+    
+    while q.size > 0 do
+        local next = q:pop()
+        set:put(next.name)
+        for neighbour_name, type in pairs(next.station.neighbours) do
+            local station = stations[neighbour_name]
+            local stationAvailable = station.type == StationType.POLIS or
+                Global:tableContains(activeZones, station.zone:toString())
+                or true
+
+            if stationAvailable and not set:contains(neighbour_name) then
+                if isAnna and type == Neighbouring.PASSAGE then
+                    nextSpeed = next.speed
+                else
+                    nextSpeed = next.speed - 1
+                end
+                if nextSpeed >= 0 then
+                    q:put({station=station, name=neighbour_name, speed=nextSpeed})
+                end
+            end
         end
     end
+    return set:getValues()
 end
 
 Production = {
@@ -1005,7 +1014,7 @@ function Set()
                 self.size = self.size - 1
             end
         end,
-        contains = function (self)
+        contains = function (self, elem)
             if self.array[elem] then
                 return true
             end
@@ -1024,6 +1033,29 @@ function Set()
 end
 
 -- ------------------------------------------------------------
+-- Queue structure
+-- ------------------------------------------------------------
+
+function Queue()
+    return {
+        size = 0,
+        array = {},
+        put = function (self, elem)
+            table.insert(self.array, elem)
+            self.size = self.size + 1
+        end,
+        pop = function (self)
+            local elem = table.remove(self.array, 1)            
+            self.size = self.size - 1
+            return elem        
+        end,
+        getValues = function (self)
+            return self.array
+        end
+    }
+end
+
+-- ------------------------------------------------------------
 -- Exporting functions
 -- ------------------------------------------------------------
 
@@ -1037,6 +1069,6 @@ function findStationByNameExported(args)
 end
 
 function highlightPossibleMovesExported(args)
-    return highlightPossibleMoves(args.position, args.speed)
+    return highlightPossibleMoves(args.position, args.speed, args.isAnna)
 end
 
