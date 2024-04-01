@@ -1,0 +1,12 @@
+<button onClick="buttonClicked" 
+    position="0 -1070 -60" 
+    rotation="180 0 0"
+    width="300" 
+    height="150" 
+    fontSize="60" 
+    color="orange"
+    outline="black"
+    outlineSize="5"
+>
+    Attack
+</button>

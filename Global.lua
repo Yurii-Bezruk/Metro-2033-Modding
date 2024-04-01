@@ -34,7 +34,8 @@ function clearDeskExtensions()
 end
 
 function onObjectStateChange(object, old_state_guid)
-    ROOT_BAG:setScriptToObject(object)
+    --log(object.guid)
+    --ROOT_BAG:setScriptToObject(object)
 end
 
 -- ------------------------------------------------------------

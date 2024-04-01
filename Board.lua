@@ -78,8 +78,24 @@ function findStationByName(name)
     return stations[name]
 end
 
-function highlight(name)
-    highlightPosition(stations[name].position)
+function highlight(name, color)
+    highlightPosition(stations[name].position, color)
+end
+
+function setOwner(name, owner)
+    stations[name].owner = owner
+end
+
+function removeOwner(name)
+    stations[name].owner = nil
+end
+
+function highlightPossibleAttacks(fraction)
+    for name, station in pairs(stations) do
+        if station.owner == fraction then
+            highlight(name, Color.RED)
+        end
+    end
 end
 
 function highlightPossibleMoves(position, speed, isAnna)
@@ -1068,7 +1084,19 @@ function findStationByNameExported(args)
     return findStationByName(args.name)
 end
 
+function setOwnerExported(args)
+    return setOwner(args.name, args.owner)
+end
+
+function removeOwnerExported(args)
+    return removeOwner(args.name)
+end
+
 function highlightPossibleMovesExported(args)
     return highlightPossibleMoves(args.position, args.speed, args.isAnna)
+end
+
+function highlightPossibleAttacksExported(args)
+    return highlightPossibleAttacks(args.fraction)
 end
 
