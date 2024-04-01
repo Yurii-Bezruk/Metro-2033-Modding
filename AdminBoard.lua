@@ -1,8 +1,4 @@
-local heroNameScript = [[
-    NAME = ]]
-
 local heroFigureScript = [[
-
     BOARD_GUID = Global.getVar('BOARD_GUID')
     ADMIN_BOARD_GUID = Global.getVar('ADMIN_BOARD_GUID')
     
@@ -75,8 +71,8 @@ function onLoad()
     }
 
     for name, hero in pairs(heroes) do
-        local figureScript = heroNameScript .. "'" .. name .. "'" .. heroFigureScript
-        hero.figure.setLuaScript(figureScript)
+        hero.figure.setLuaScript(heroFigureScript)
+        hero.figure.setVar('NAME', name)
         hero.card = getObjectFromGUID(hero.card_guid)
         if hero.card != nil then
             hero.card.setLuaScript(heroCardScript)

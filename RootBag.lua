@@ -1,5 +1,6 @@
 local script = [[
     BOARD_GUID = Global.getVar('BOARD_GUID')
+    CHANGED_STATE = false
     
     function onLoad()
         -- ------------------------------------------------------------
@@ -37,6 +38,7 @@ local script = [[
         if state == self.getStateId() then
             return
         end
+        CHANGED_STATE = true
         local newState = self.setState(state)
         newState.setLuaScript(self.getLuaScript())
         newState.setVar('FRACTION', FRACTION)
@@ -44,6 +46,16 @@ local script = [[
     end
 
     function onPickUp(player_color)
+        tryRemoveOwner()
+    end
+
+    function onDestroy()
+        if not CHANGED_STATE then
+            tryRemoveOwner()
+        end
+    end
+    
+    function tryRemoveOwner()
         if STATION != nil then
             BOARD:removeOwner(STATION)
         end

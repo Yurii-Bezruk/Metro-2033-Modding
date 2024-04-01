@@ -9,6 +9,9 @@ function onLoad()
         end,
         tableContains = function(self, table, elem)
             return self.obj.call('tableContainsExported', {table=table, elem=elem})
+        end,
+        tableKeys = function(self, table)
+            return self.obj.call('tableKeys', table)
         end
     }
 end
@@ -29,7 +32,7 @@ function highlightPosition(position, color)
     drawCircle({
         radius    = 0.23, 
         color     = color,
-        thickness = 0.03,
+        thickness = 0.04,
         position  = Vector(position.x, 0.6, position.z)
     })
 end
@@ -90,18 +93,65 @@ function removeOwner(name)
     stations[name].owner = nil
 end
 
-function highlightPossibleAttacks(fraction)
+function getOwnedStations(fraction)
+    local ownedStations = {}
     for name, station in pairs(stations) do
         if station.owner == fraction then
-            highlight(name, Color.RED)
+            table.insert(ownedStations, name)
         end
     end
+    return ownedStations
+end
+
+function highlightPossibleAttacks(fraction)
+--    local color = Color(224/255, 36/255, 36/255, 1)
+    local color = Color(1, 0, 0, 1)
+    local ownedStations = getOwnedStations(fraction)
+    if #ownedStations == 0 then
+        do return end
+    end
+    local activeZones = getSeatedPlayers()
+    local possibleAttacks = Set()
+    for i, name in ipairs(ownedStations) do
+        possibleAttacks:putAll(findPossibleAttacks(name, activeZones, ownedStations))
+    end
+    possibleAttacks:removeAll(ownedStations)
+    for i, name in ipairs(possibleAttacks:getValues()) do
+        highlight(name)
+    end
+end
+
+function findPossibleAttacks(name, activeZones, ownedStationNames)
+    local speed = 1
+    local set = Set()
+    local q = Queue()
+    set:putAll(ownedStationNames)
+    q:put({station=stations[name], name=name, speed=speed})
+    
+    while q.size > 0 do
+        local next = q:pop()
+        set:put(next.name)
+        for neighbour_name, type in pairs(next.station.neighbours) do
+            local station = stations[neighbour_name]
+            local stationAvailable = station.type == StationType.POLIS or
+                Global:tableContains(activeZones, station.zone:toString())
+                or true
+
+            if stationAvailable and not set:contains(neighbour_name) then
+                nextSpeed = next.speed - 1
+                if nextSpeed >= 0 then
+                    q:put({station=station, name=neighbour_name, speed=nextSpeed})
+                end
+            end
+        end
+    end
+    return set:getValues()
 end
 
 function highlightPossibleMoves(position, speed, isAnna)
     local origin_name, station = findStationByPosition(position)
     if station == nil then
-        return
+        do return end
     end
     local activeZones = getSeatedPlayers()
     local possibleMoves = findPossibleMoves(origin_name, speed, activeZones, isAnna)
@@ -1024,10 +1074,20 @@ function Set()
             self.array[elem] = true
             self.size = self.size + 1
         end,
+        putAll = function (self, arr)
+            for i, elem in ipairs(arr) do
+                self:put(elem)
+            end
+        end,
         remove = function (self, elem)
             if self.array[elem] then
                 self.array[elem] = false
                 self.size = self.size - 1
+            end
+        end,
+        removeAll = function (self, arr)
+            for i, elem in ipairs(arr) do
+                self:remove(elem)
             end
         end,
         contains = function (self, elem)
