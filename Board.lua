@@ -1,3 +1,5 @@
+ADMIN_BOARD_GUID = Global.getVar('ADMIN_BOARD_GUID')
+
 function onLoad()
     -- ------------------------------------------------------------
     -- Importing functions
@@ -12,6 +14,15 @@ function onLoad()
         end,
         tableKeys = function(self, table)
             return self.obj.call('tableKeys', table)
+        end
+    }
+    ADMIN_BOARD = {
+        obj = getObjectFromGUID(ADMIN_BOARD_GUID),
+        getActiveHeroes = function(self)
+            return self.obj.call('getActiveHeroes')
+        end,
+        hasEquipment = function(self, hero_name, equip_name)
+            return self.obj.call('hasEquipmentExported', {hero_name=hero_name, equip_name=equip_name})
         end
     }
 end
@@ -112,16 +123,51 @@ end
 function highlightPossibleAttacks(fraction)
 --    local color = Color(224/255, 36/255, 36/255, 1)
     local color = Color(1, 0, 0, 1)
+
     local ownedStations = getOwnedStations(fraction)
     if #ownedStations == 0 then
         do return end
     end
     local activeZones = getSeatedPlayers()
-    local possibleAttacks = Set()
+    local possibleAttacks = Set()    
+    local activeHeroes = ADMIN_BOARD:getActiveHeroes()
+    local occupiedStations = {}
+    local highlightLocomotive = false
+    local heroStationName = nil
+    local heroStation = nil
+
+    for heroName, hero in pairs(activeHeroes) do
+        if hero.fraction == fraction then
+            -- saving station where our hero stands here
+            if ADMIN_BOARD:hasEquipment(heroName, 'locomotive') then
+                heroStationName, heroStation = findStationByPosition(hero.figure.getPosition())
+            end
+        else
+            -- for other heroes checking if they standing on our stations and adding to occupied stations if so
+            local occupiedStation, _ = findStationByPosition(hero.figure.getPosition())
+            if occupiedStation != nil and Global:tableContains(ownedStations, occupiedStation) then
+                table.insert(occupiedStations, occupiedStation)
+            end
+        end
+    end
+
+    -- if hero has locomotive and stands on neutral station then we count that station as ours
+    if heroStation != nil and heroStation.owner == nil
+        and (heroStation.type == StationType.NEUTRAL or heroStation.type == StationType.POLIS) then
+            table.insert(ownedStations, heroStationName)
+            highlightLocomotive = true
+    end
+
+    -- searching for all possible attacks from our stations
     for i, name in ipairs(ownedStations) do
         possibleAttacks:putAll(findPossibleAttacks(name, activeZones, ownedStations))
     end
+
     possibleAttacks:removeAll(ownedStations)
+    possibleAttacks:putAll(occupiedStations)
+    if highlightLocomotive == true then
+        possibleAttacks:put(heroStationName)    
+    end
     for i, name in ipairs(possibleAttacks:getValues()) do
         highlight(name)
     end
@@ -161,7 +207,9 @@ function putGanzaNeighbours(ganza, speed, activeZones, q)
     for neighbour_name, type in pairs(ganza.neighbours) do
         if type == Neighbouring.TUNNEL then
             for travel_name, travel_type in pairs(stations[neighbour_name].neighbours) do 
-                if travel_type == Neighbouring.PASSAGE and stationAvailable(stations[travel_name], activeZones) then
+                if travel_type == Neighbouring.PASSAGE 
+                    and stationAvailable(stations[travel_name], activeZones)
+                    and stations[travel_name].type != StationType.ABANDONED then
                     q:put({station=stations[travel_name], name=travel_name, speed=speed})                
                 end
             end

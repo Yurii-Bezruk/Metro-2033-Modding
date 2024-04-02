@@ -97,6 +97,24 @@ function findHeroByFigure(heroFigure)
     end
 end
 
+function findHeroByName(heroName)
+    for name, hero in pairs(heroes) do
+        if name == heroName then
+            return hero
+        end
+    end
+end
+
+function getActiveHeroes()
+    local activeHeroes = {}
+    for name, hero in pairs(heroes) do
+        if hero.fraction != nil then
+            activeHeroes[name] = hero
+        end
+    end
+    return activeHeroes
+end
+
 function assignHero(heroCard)
     local hero_name, hero = findHeroByCard(heroCard)
     if not zoneContain(hero_figure_start_zone, hero.figure) then
@@ -151,6 +169,14 @@ function getEquipment(hero)
     return fractions[hero.fraction].equipment_zone.getObjects()
 end
 
+function hasEquipment(hero_name, equip_name)
+    local hero = findHeroByName(hero_name)
+    for _, card in ipairs(getEquipment(hero)) do
+        if card.guid == equipment[equip_name][1] or card.guid == equipment[equip_name][2] then
+            return true
+        end
+    end
+end
 
 -- ------------------------------------------------------------
 -- Event Handlers
@@ -323,3 +349,11 @@ equipment = {
     grenade = {'f3b7cb', 'e20c78'},
     dynamite = {'79f781', 'f42d48'}
 }
+
+-- ------------------------------------------------------------
+-- Exporting functions
+-- ------------------------------------------------------------
+
+function hasEquipmentExported(args)
+    return hasEquipment(args.hero_name, args.equip_name)
+end
