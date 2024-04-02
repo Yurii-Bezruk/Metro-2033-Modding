@@ -145,6 +145,8 @@ function findPossibleAttacks(name, activeZones, ownedStationNames)
                 if nextSpeed >= 0 then
                     if neighbour.type == StationType.GANZA then
                         putGanzaNeighbours(neighbour, nextSpeed, activeZones, q)
+                    elseif neighbour.type == StationType.POLIS then
+                        putPolisNeighbours(neighbour, neighbour_name, nextSpeed, activeZones, q)
                     elseif neighbour.type == StationType.NEUTRAL then
                         q:put({station=neighbour, name=neighbour_name, speed=nextSpeed})
                     end
@@ -163,6 +165,25 @@ function putGanzaNeighbours(ganza, speed, activeZones, q)
                     q:put({station=stations[travel_name], name=travel_name, speed=speed})                
                 end
             end
+        end
+    end
+end
+
+function putPolisNeighbours(polis, name, speed, activeZones, q)
+    q:put({station=polis, name=name, speed=speed})
+    if polis.owner != nil then
+        do return end
+    end
+    for neighbour_name, type in pairs(polis.neighbours) do
+        if stations[neighbour_name].type == StationType.POLIS then
+            q:put({station=stations[neighbour_name], name=neighbour_name, speed=speed})
+            for travel_name, travel_type in pairs(stations[neighbour_name].neighbours) do 
+                if stationAvailable(stations[travel_name], activeZones) and stations[neighbour_name].owner == nil then
+                    q:put({station=stations[travel_name], name=travel_name, speed=speed})
+                end
+            end
+        elseif stationAvailable(stations[neighbour_name], activeZones) then
+            q:put({station=stations[neighbour_name], name=neighbour_name, speed=speed})
         end
     end
 end
