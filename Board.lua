@@ -103,6 +103,12 @@ function getOwnedStations(fraction)
     return ownedStations
 end
 
+function stationAvailable(station, activeZones)
+    return station.type == StationType.POLIS
+        or Global:tableContains(activeZones, station.zone:toString())
+        or true
+end
+
 function highlightPossibleAttacks(fraction)
 --    local color = Color(224/255, 36/255, 36/255, 1)
     local color = Color(1, 0, 0, 1)
@@ -131,21 +137,34 @@ function findPossibleAttacks(name, activeZones, ownedStationNames)
     while q.size > 0 do
         local next = q:pop()
         set:put(next.name)
+    
         for neighbour_name, type in pairs(next.station.neighbours) do
-            local station = stations[neighbour_name]
-            local stationAvailable = station.type == StationType.POLIS or
-                Global:tableContains(activeZones, station.zone:toString())
-                or true
-
-            if stationAvailable and not set:contains(neighbour_name) then
-                nextSpeed = next.speed - 1
+            local neighbour = stations[neighbour_name]
+            if stationAvailable(neighbour, activeZones) and not set:contains(neighbour_name) then
+                local nextSpeed = next.speed - 1
                 if nextSpeed >= 0 then
-                    q:put({station=station, name=neighbour_name, speed=nextSpeed})
+                    if neighbour.type == StationType.GANZA then
+                        putGanzaNeighbours(neighbour, nextSpeed, activeZones, q)
+                    elseif neighbour.type == StationType.NEUTRAL then
+                        q:put({station=neighbour, name=neighbour_name, speed=nextSpeed})
+                    end
                 end
             end
         end
     end
     return set:getValues()
+end
+
+function putGanzaNeighbours(ganza, speed, activeZones, q)
+    for neighbour_name, type in pairs(ganza.neighbours) do
+        if type == Neighbouring.TUNNEL then
+            for travel_name, travel_type in pairs(stations[neighbour_name].neighbours) do 
+                if travel_type == Neighbouring.PASSAGE and stationAvailable(stations[travel_name], activeZones) then
+                    q:put({station=stations[travel_name], name=travel_name, speed=speed})                
+                end
+            end
+        end
+    end
 end
 
 function highlightPossibleMoves(position, speed, isAnna)
@@ -170,19 +189,15 @@ function findPossibleMoves(name, speed, activeZones, isAnna)
         local next = q:pop()
         set:put(next.name)
         for neighbour_name, type in pairs(next.station.neighbours) do
-            local station = stations[neighbour_name]
-            local stationAvailable = station.type == StationType.POLIS or
-                Global:tableContains(activeZones, station.zone:toString())
-                or true
-
-            if stationAvailable and not set:contains(neighbour_name) then
+            local neighbour = stations[neighbour_name]
+            if stationAvailable(neighbour, activeZones) and not set:contains(neighbour_name) then
                 if isAnna and type == Neighbouring.PASSAGE then
                     nextSpeed = next.speed
                 else
                     nextSpeed = next.speed - 1
                 end
                 if nextSpeed >= 0 then
-                    q:put({station=station, name=neighbour_name, speed=nextSpeed})
+                    q:put({station=neighbour, name=neighbour_name, speed=nextSpeed})
                 end
             end
         end
