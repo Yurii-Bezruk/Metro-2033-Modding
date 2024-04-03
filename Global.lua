@@ -4,26 +4,6 @@ ADMIN_BOARD_GUID = '68c9ad'
 
 function onLoad()
     clearDeskExtensions()
-
-    -- ------------------------------------------------------------
-    -- Importing functions
-    -- ------------------------------------------------------------
-    ROOT_BAG = {
-        obj = getObjectFromGUID(ROOT_BAG_GUID),
-        setScriptToObject = function(self, object)
-            return self.obj.call('setScriptToObject', object)
-        end
-    }
-
-    BOARD = {
-        obj = getObjectFromGUID(BOARD_GUID),
-        findStationByName = function(self, name)
-            return self.obj.call('findStationByNameExported', {name = name})
-        end,
-        highlight = function(self, name)
-            self.obj.call('highlight', name)
-        end
-    }
 end
 
 function clearDeskExtensions()
@@ -31,10 +11,6 @@ function clearDeskExtensions()
     for _, b in ipairs(ADDITION_BOARDS) do
         b.setSnapPoints({})
     end
-end
-
-function onObjectStateChange(object, old_state_guid)
-    ROOT_BAG:setScriptToObject(object)
 end
 
 -- ------------------------------------------------------------
@@ -79,6 +55,14 @@ function tableContains(table, elem)
         end
     end
     return false
+end
+
+function tableKeys(t)
+    local keys = {}
+    for key, value in pairs(t) do 
+        table.insert(keys, key)
+    end
+    return keys
 end
 
 -- ------------------------------------------------------------

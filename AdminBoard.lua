@@ -1,8 +1,4 @@
-local heroNameScript = [[
-    NAME = ]]
-
 local heroFigureScript = [[
-
     BOARD_GUID = Global.getVar('BOARD_GUID')
     ADMIN_BOARD_GUID = Global.getVar('ADMIN_BOARD_GUID')
     
@@ -63,6 +59,35 @@ local heroCardScript = [[
     end
 ]]
 
+local fractionBoardScript = [[
+    BOARD_GUID = Global.getVar('BOARD_GUID')
+    active = false
+
+    function onLoad()
+        -- ------------------------------------------------------------
+        -- Importing functions
+        -- ------------------------------------------------------------
+        BOARD = {
+            obj = getObjectFromGUID(BOARD_GUID),
+            highlightPossibleAttacks = function(self, fraction)
+                self.obj.call('highlightPossibleAttacksExported', {fraction=fraction})
+            end,
+            clearAllHighlights = function(self)
+                self.obj.call('clearAllHighlights')
+            end
+        }
+    end
+
+    function buttonClicked()
+        active = not active
+        if active then
+            BOARD:highlightPossibleAttacks(FRACTION)
+        else    
+            BOARD:clearAllHighlights()
+        end
+    end
+]]
+
 function onLoad()
     -- ------------------------------------------------------------
     -- Importing functions
@@ -75,15 +100,36 @@ function onLoad()
     }
 
     for name, hero in pairs(heroes) do
-        local figureScript = heroNameScript .. "'" .. name .. "'" .. heroFigureScript
-        hero.figure.setLuaScript(figureScript)
+        hero.figure.setLuaScript(heroFigureScript)
+        hero.figure.setVar('NAME', name)
         hero.card = getObjectFromGUID(hero.card_guid)
         if hero.card != nil then
             hero.card.setLuaScript(heroCardScript)
         end
     end
+
+    for name, fraction in pairs(fractions) do
+        fraction.board.UI.setXml(generateButton(fraction))
+        fraction.board.setLuaScript(fractionBoardScript)
+        fraction.board.setVar('FRACTION', name)
+    end
 end
 
+function generateButton(fraction)
+    return [[
+        <button onClick = "buttonClicked" 
+            position = "0 -1070 -60" 
+            rotation = "180 0 0"
+            width = "300" 
+            height = "190" 
+            fontSize = "60" 
+            color = "]]..fraction.color:toString()..[["
+            outline = "black"
+            outlineSize = "5"
+        >Attack</button>
+    ]]
+end
+    
 function findHeroByCard(heroCard)
     for name, hero in pairs(heroes) do
         if hero.card_guid == heroCard.guid then
@@ -99,6 +145,24 @@ function findHeroByFigure(heroFigure)
             return name, hero
         end
     end
+end
+
+function findHeroByName(heroName)
+    for name, hero in pairs(heroes) do
+        if name == heroName then
+            return hero
+        end
+    end
+end
+
+function getActiveHeroes()
+    local activeHeroes = {}
+    for name, hero in pairs(heroes) do
+        if hero.fraction != nil then
+            activeHeroes[name] = hero
+        end
+    end
+    return activeHeroes
 end
 
 function assignHero(heroCard)
@@ -155,6 +219,14 @@ function getEquipment(hero)
     return fractions[hero.fraction].equipment_zone.getObjects()
 end
 
+function hasEquipment(hero_name, equip_name)
+    local hero = findHeroByName(hero_name)
+    for _, card in ipairs(getEquipment(hero)) do
+        if card.guid == equipment[equip_name][1] or card.guid == equipment[equip_name][2] then
+            return true
+        end
+    end
+end
 
 -- ------------------------------------------------------------
 -- Event Handlers
@@ -327,3 +399,11 @@ equipment = {
     grenade = {'f3b7cb', 'e20c78'},
     dynamite = {'79f781', 'f42d48'}
 }
+
+-- ------------------------------------------------------------
+-- Exporting functions
+-- ------------------------------------------------------------
+
+function hasEquipmentExported(args)
+    return hasEquipment(args.hero_name, args.equip_name)
+end

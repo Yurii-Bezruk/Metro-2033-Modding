@@ -1,3 +1,5 @@
+ADMIN_BOARD_GUID = Global.getVar('ADMIN_BOARD_GUID')
+
 function onLoad()
     -- ------------------------------------------------------------
     -- Importing functions
@@ -9,6 +11,18 @@ function onLoad()
         end,
         tableContains = function(self, table, elem)
             return self.obj.call('tableContainsExported', {table=table, elem=elem})
+        end,
+        tableKeys = function(self, table)
+            return self.obj.call('tableKeys', table)
+        end
+    }
+    ADMIN_BOARD = {
+        obj = getObjectFromGUID(ADMIN_BOARD_GUID),
+        getActiveHeroes = function(self)
+            return self.obj.call('getActiveHeroes')
+        end,
+        hasEquipment = function(self, hero_name, equip_name)
+            return self.obj.call('hasEquipmentExported', {hero_name=hero_name, equip_name=equip_name})
         end
     }
 end
@@ -29,7 +43,7 @@ function highlightPosition(position, color)
     drawCircle({
         radius    = 0.23, 
         color     = color,
-        thickness = 0.03,
+        thickness = 0.04,
         position  = Vector(position.x, 0.6, position.z)
     })
 end
@@ -78,14 +92,154 @@ function findStationByName(name)
     return stations[name]
 end
 
-function highlight(name)
-    highlightPosition(stations[name].position)
+function highlight(name, color)
+    highlightPosition(stations[name].position, color)
+end
+
+function setOwner(name, owner)
+    stations[name].owner = owner
+end
+
+function removeOwner(name)
+    stations[name].owner = nil
+end
+
+function getOwnedStations(fraction)
+    local ownedStations = {}
+    for name, station in pairs(stations) do
+        if station.owner == fraction then
+            table.insert(ownedStations, name)
+        end
+    end
+    return ownedStations
+end
+
+function stationAvailable(station, activeZones)
+    return station.type == StationType.POLIS
+        or Global:tableContains(activeZones, station.zone:toString())
+        or true
+end
+
+function highlightPossibleAttacks(fraction)
+--    local color = Color(224/255, 36/255, 36/255, 1)
+    local color = Color(1, 0, 0, 1)
+
+    local ownedStations = getOwnedStations(fraction)
+    if #ownedStations == 0 then
+        do return end
+    end
+    local activeZones = getSeatedPlayers()
+    local possibleAttacks = Set()    
+    local activeHeroes = ADMIN_BOARD:getActiveHeroes()
+    local occupiedStations = {}
+    local highlightLocomotive = false
+    local heroStationName = nil
+    local heroStation = nil
+
+    for heroName, hero in pairs(activeHeroes) do
+        if hero.fraction == fraction then
+            -- saving station where our hero stands here
+            if ADMIN_BOARD:hasEquipment(heroName, 'locomotive') then
+                heroStationName, heroStation = findStationByPosition(hero.figure.getPosition())
+            end
+        else
+            -- for other heroes checking if they standing on our stations and adding to occupied stations if so
+            local occupiedStation, _ = findStationByPosition(hero.figure.getPosition())
+            if occupiedStation != nil and Global:tableContains(ownedStations, occupiedStation) then
+                table.insert(occupiedStations, occupiedStation)
+            end
+        end
+    end
+
+    -- if hero has locomotive and stands on neutral station then we count that station as ours
+    if heroStation != nil and heroStation.owner == nil
+        and (heroStation.type == StationType.NEUTRAL or heroStation.type == StationType.POLIS) then
+            table.insert(ownedStations, heroStationName)
+            highlightLocomotive = true
+    end
+
+    -- searching for all possible attacks from our stations
+    for i, name in ipairs(ownedStations) do
+        possibleAttacks:putAll(findPossibleAttacks(name, activeZones, ownedStations))
+    end
+
+    possibleAttacks:removeAll(ownedStations)
+    possibleAttacks:putAll(occupiedStations)
+    if highlightLocomotive == true then
+        possibleAttacks:put(heroStationName)    
+    end
+    for i, name in ipairs(possibleAttacks:getValues()) do
+        highlight(name)
+    end
+end
+
+function findPossibleAttacks(name, activeZones, ownedStationNames)
+    local speed = 1
+    local set = Set()
+    local q = Queue()
+    set:putAll(ownedStationNames)
+    q:put({station=stations[name], name=name, speed=speed})
+    
+    while q.size > 0 do
+        local next = q:pop()
+        set:put(next.name)
+    
+        for neighbour_name, type in pairs(next.station.neighbours) do
+            local neighbour = stations[neighbour_name]
+            if stationAvailable(neighbour, activeZones) and not set:contains(neighbour_name) then
+                local nextSpeed = next.speed - 1
+                if nextSpeed >= 0 then
+                    if neighbour.type == StationType.GANZA then
+                        putGanzaNeighbours(neighbour, nextSpeed, activeZones, q)
+                    elseif neighbour.type == StationType.POLIS then
+                        putPolisNeighbours(neighbour, neighbour_name, nextSpeed, activeZones, q)
+                    elseif neighbour.type == StationType.NEUTRAL then
+                        q:put({station=neighbour, name=neighbour_name, speed=nextSpeed})
+                    end
+                end
+            end
+        end
+    end
+    return set:getValues()
+end
+
+function putGanzaNeighbours(ganza, speed, activeZones, q)
+    for neighbour_name, type in pairs(ganza.neighbours) do
+        if type == Neighbouring.TUNNEL then
+            for travel_name, travel_type in pairs(stations[neighbour_name].neighbours) do 
+                if travel_type == Neighbouring.PASSAGE 
+                    and stationAvailable(stations[travel_name], activeZones)
+                    and stations[travel_name].type != StationType.ABANDONED then
+                    q:put({station=stations[travel_name], name=travel_name, speed=speed})                
+                end
+            end
+        end
+    end
+end
+
+function putPolisNeighbours(polis, name, speed, activeZones, q)
+    q:put({station=polis, name=name, speed=speed})
+    if polis.owner != nil then
+        do return end
+    end
+    for neighbour_name, type in pairs(polis.neighbours) do
+        if stations[neighbour_name].type == StationType.POLIS then
+            q:put({station=stations[neighbour_name], name=neighbour_name, speed=speed})
+            for travel_name, travel_type in pairs(stations[neighbour_name].neighbours) do 
+                if stationAvailable(stations[travel_name], activeZones) and stations[neighbour_name].owner == nil then
+                    q:put({station=stations[travel_name], name=travel_name, speed=speed})
+                end
+            end
+        elseif stationAvailable(stations[neighbour_name], activeZones) then
+            q:put({station=stations[neighbour_name], name=neighbour_name, speed=speed})
+        end
+    end
 end
 
 function highlightPossibleMoves(position, speed, isAnna)
     local origin_name, station = findStationByPosition(position)
     if station == nil then
-        return
+        do return end
     end
     local activeZones = getSeatedPlayers()
     local possibleMoves = findPossibleMoves(origin_name, speed, activeZones, isAnna)
@@ -104,19 +258,15 @@ function findPossibleMoves(name, speed, activeZones, isAnna)
         local next = q:pop()
         set:put(next.name)
         for neighbour_name, type in pairs(next.station.neighbours) do
-            local station = stations[neighbour_name]
-            local stationAvailable = station.type == StationType.POLIS or
-                Global:tableContains(activeZones, station.zone:toString())
-                or true
-
-            if stationAvailable and not set:contains(neighbour_name) then
+            local neighbour = stations[neighbour_name]
+            if stationAvailable(neighbour, activeZones) and not set:contains(neighbour_name) then
                 if isAnna and type == Neighbouring.PASSAGE then
                     nextSpeed = next.speed
                 else
                     nextSpeed = next.speed - 1
                 end
                 if nextSpeed >= 0 then
-                    q:put({station=station, name=neighbour_name, speed=nextSpeed})
+                    q:put({station=neighbour, name=neighbour_name, speed=nextSpeed})
                 end
             end
         end
@@ -1008,10 +1158,20 @@ function Set()
             self.array[elem] = true
             self.size = self.size + 1
         end,
+        putAll = function (self, arr)
+            for i, elem in ipairs(arr) do
+                self:put(elem)
+            end
+        end,
         remove = function (self, elem)
             if self.array[elem] then
                 self.array[elem] = false
                 self.size = self.size - 1
+            end
+        end,
+        removeAll = function (self, arr)
+            for i, elem in ipairs(arr) do
+                self:remove(elem)
             end
         end,
         contains = function (self, elem)
@@ -1068,7 +1228,19 @@ function findStationByNameExported(args)
     return findStationByName(args.name)
 end
 
+function setOwnerExported(args)
+    return setOwner(args.name, args.owner)
+end
+
+function removeOwnerExported(args)
+    return removeOwner(args.name)
+end
+
 function highlightPossibleMovesExported(args)
     return highlightPossibleMoves(args.position, args.speed, args.isAnna)
+end
+
+function highlightPossibleAttacksExported(args)
+    return highlightPossibleAttacks(args.fraction)
 end
 

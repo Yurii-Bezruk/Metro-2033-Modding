@@ -1,5 +1,6 @@
 local script = [[
     BOARD_GUID = Global.getVar('BOARD_GUID')
+    CHANGED_STATE = false
     
     function onLoad()
         -- ------------------------------------------------------------
@@ -10,6 +11,12 @@ local script = [[
             findStationByPosition = function(self, position)
                 res = self.obj.call('findStationByPositionExported', position)
                 return res.name, res.station
+            end,
+            setOwner = function(self, name, owner)
+                self.obj.call('setOwnerExported', {name=name, owner=owner})
+            end,
+            removeOwner = function(self, name, owner)
+                self.obj.call('removeOwnerExported', {name=name})
             end
         }
         Production = BOARD.obj.getTable('Production')
@@ -25,20 +32,50 @@ local script = [[
             state = Production.GENERIC
         else
             state = station.production
+            BOARD:setOwner(name, FRACTION)
+            STATION = name
         end
         if state == self.getStateId() then
             return
         end
-        self.setState(state)        
+        CHANGED_STATE = true
+        local newState = self.setState(state)
+        newState.setLuaScript(self.getLuaScript())
+        newState.setVar('FRACTION', FRACTION)
+        newState.setVar('STATION', STATION)
+    end
+
+    function onPickUp(player_color)
+        tryRemoveOwner()
+    end
+
+    function onDestroy()
+        if not CHANGED_STATE then
+            tryRemoveOwner()
+        end
+    end
+    
+    function tryRemoveOwner()
+        if STATION != nil then
+            BOARD:removeOwner(STATION)
+        end
     end
 ]]
 
-FRACTION_TOKEN_BAG_GUIDS = {'e0ae4a', '33d809', '6e9e5a', 'c5c908', '6f710d', 'e855f1'}
+FRACTION_TOKEN_BAG_GUIDS = {
+    reich = '6e9e5a',
+    red_line = 'c5c908',
+    bauman = 'e855f1',
+    bandits = '33d809',
+    arbats = 'e0ae4a',
+    confederation = '6f710d'
+}
 
 function onObjectLeaveContainer(container, object)
-    for i, guid in ipairs(FRACTION_TOKEN_BAG_GUIDS) do
+    for name, guid in pairs(FRACTION_TOKEN_BAG_GUIDS) do
         if guid == container.guid then
             object.setLuaScript(script)
+            object.setVar('FRACTION', name)
         end
     end
 end
