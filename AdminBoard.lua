@@ -59,6 +59,35 @@ local heroCardScript = [[
     end
 ]]
 
+local fractionBoardScript = [[
+    BOARD_GUID = Global.getVar('BOARD_GUID')
+    active = false
+
+    function onLoad()
+        -- ------------------------------------------------------------
+        -- Importing functions
+        -- ------------------------------------------------------------
+        BOARD = {
+            obj = getObjectFromGUID(BOARD_GUID),
+            highlightPossibleAttacks = function(self, fraction)
+                self.obj.call('highlightPossibleAttacksExported', {fraction=fraction})
+            end,
+            clearAllHighlights = function(self)
+                self.obj.call('clearAllHighlights')
+            end
+        }
+    end
+
+    function buttonClicked()
+        active = not active
+        if active then
+            BOARD:highlightPossibleAttacks(FRACTION)
+        else    
+            BOARD:clearAllHighlights()
+        end
+    end
+]]
+
 function onLoad()
     -- ------------------------------------------------------------
     -- Importing functions
@@ -78,8 +107,29 @@ function onLoad()
             hero.card.setLuaScript(heroCardScript)
         end
     end
+
+    for name, fraction in pairs(fractions) do
+        fraction.board.UI.setXml(generateButton(fraction))
+        fraction.board.setLuaScript(fractionBoardScript)
+        fraction.board.setVar('FRACTION', name)
+    end
 end
 
+function generateButton(fraction)
+    return [[
+        <button onClick = "buttonClicked" 
+            position = "0 -1070 -60" 
+            rotation = "180 0 0"
+            width = "300" 
+            height = "190" 
+            fontSize = "60" 
+            color = "]]..fraction.color:toString()..[["
+            outline = "black"
+            outlineSize = "5"
+        >Attack</button>
+    ]]
+end
+    
 function findHeroByCard(heroCard)
     for name, hero in pairs(heroes) do
         if hero.card_guid == heroCard.guid then
