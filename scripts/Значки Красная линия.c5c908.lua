@@ -1,5 +1,6 @@
-local script = [[
+local fractionTokenScript = [[
     BOARD_GUID = Global.getVar('BOARD_GUID')
+    ROOT_BAG_GUID = Global.getVar('ROOT_BAG_GUID')
     CHANGED_STATE = false
     
     function onLoad()
@@ -20,6 +21,18 @@ local script = [[
             end
         }
         Production = BOARD.obj.getTable('Production')
+        ROOT_BAG = {
+            obj = getObjectFromGUID(ROOT_BAG_GUID),
+            putToTokenStorage = function(self, object)
+                self.obj.call('putToTokenStorage', object)
+            end,
+            getFromTokenStorage = function(self, guid)
+                return self.obj.call('getFromTokenStorageExported', {guid=guid})
+            end,
+            removeFromTokenStorage = function(self, guid)
+                self.obj.call('removeFromTokenStorageExported', {guid=guid})
+            end
+        }
     end
 
     function onDrop(player_color)        
@@ -27,22 +40,22 @@ local script = [[
     end
 
     function delayedOnDrop()
-        name, station = BOARD:findStationByPosition(self.getPosition())
+        local station_name, station = BOARD:findStationByPosition(self.getPosition())
         if station == nil then
             state = Production.GENERIC
+            STATION = nil
         else
             state = station.production
-            BOARD:setOwner(name, FRACTION)
-            STATION = name
+            BOARD:setOwner(station_name, FRACTION)
+            STATION = station_name
         end
+        ROOT_BAG:putToTokenStorage(self)
         if state == self.getStateId() then
             return
         end
         CHANGED_STATE = true
         local newState = self.setState(state)
         newState.setLuaScript(self.getLuaScript())
-        newState.setVar('FRACTION', FRACTION)
-        newState.setVar('STATION', STATION)
     end
 
     function onPickUp(player_color)
@@ -53,6 +66,16 @@ local script = [[
         if not CHANGED_STATE then
             tryRemoveOwner()
         end
+        Wait.time(function () 
+            ROOT_BAG:removeFromTokenStorage(self.guid)
+        end, 1)
+    end
+
+    function onStateChange(old_state_guid)
+        local oldToken = ROOT_BAG:getFromTokenStorage(old_state_guid)
+        FRACTION = oldToken.fraction
+        STATION = oldToken.station
+        ROOT_BAG:putToTokenStorage(self)
     end
     
     function tryRemoveOwner()
@@ -74,12 +97,41 @@ FRACTION_TOKEN_BAG_GUIDS = {
 function onObjectLeaveContainer(container, object)
     for name, guid in pairs(FRACTION_TOKEN_BAG_GUIDS) do
         if guid == container.guid then
-            object.setLuaScript(script)
+            object.setLuaScript(fractionTokenScript)
             object.setVar('FRACTION', name)
         end
     end
 end
 
-function setScriptToObject(object)
-    object.setLuaScript(script)
+-- ------------------------------------------------------------
+-- Token storage
+-- ------------------------------------------------------------
+
+TOKEN_STORAGE = {}
+
+function putToTokenStorage(object)
+    TOKEN_STORAGE[object.guid] = {
+        fraction = object.getVar('FRACTION'),
+        station = object.getVar('STATION')
+    }
+end
+
+function getFromTokenStorage(guid)
+    return TOKEN_STORAGE[guid]
+end
+
+function removeFromTokenStorage(guid)
+    TOKEN_STORAGE[guid] = nil
+end
+
+-- ------------------------------------------------------------
+-- Exporting functions
+-- ------------------------------------------------------------
+
+function getFromTokenStorageExported(args)
+    return getFromTokenStorage(args.guid)
+end
+
+function removeFromTokenStorageExported(args)
+    removeFromTokenStorage(args.guid)
 end
