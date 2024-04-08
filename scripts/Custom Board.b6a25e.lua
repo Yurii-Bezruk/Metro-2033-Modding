@@ -1243,4 +1243,3 @@ end
 function highlightPossibleAttacksExported(args)
     return highlightPossibleAttacks(args.fraction)
 end
-

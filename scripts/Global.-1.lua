@@ -7,8 +7,8 @@ function onLoad()
 end
 
 function clearDeskExtensions()
-    ADDITION_BOARDS = getObjectsFromGUIDs({'15ef07', '1c3b49', 'bb444e', '918452'})
-    for _, b in ipairs(ADDITION_BOARDS) do
+    local addition_desks = getObjectsFromGUIDs({'15ef07', '1c3b49', 'bb444e', '918452'})
+    for _, b in ipairs(addition_desks) do
         b.setSnapPoints({})
     end
 end
@@ -40,9 +40,9 @@ function roundVector(vector, scale)
     )
 end
 
-function tableSize(t)
+function tableSize(table)
     local size = 0
-    for i in pairs(t) do 
+    for i in pairs(table) do 
         size = size + 1 
     end
     return size
