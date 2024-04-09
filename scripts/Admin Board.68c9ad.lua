@@ -228,6 +228,14 @@ function hasEquipment(hero_name, equip_name)
     end
 end
 
+function findFractionByColor(color)
+    for name, fraction in pairs(fractions) do
+        if fraction.color == color then
+            return name, fraction
+        end
+    end
+end
+
 -- ------------------------------------------------------------
 -- Event Handlers
 -- ------------------------------------------------------------
@@ -406,4 +414,9 @@ equipment = {
 
 function hasEquipmentExported(args)
     return hasEquipment(args.hero_name, args.equip_name)
+end
+
+function findFractionByColorExported(color)
+    local name, fraction = findFractionByColor(color)
+    return {name=name, fraction=fraction}
 end

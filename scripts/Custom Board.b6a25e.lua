@@ -11,9 +11,6 @@ function onLoad()
         end,
         tableContains = function(self, table, elem)
             return self.obj.call('tableContainsExported', {table=table, elem=elem})
-        end,
-        tableKeys = function(self, table)
-            return self.obj.call('tableKeys', table)
         end
     }
     ADMIN_BOARD = {
