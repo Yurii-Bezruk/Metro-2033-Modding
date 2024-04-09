@@ -20,7 +20,6 @@ local fractionTokenScript = [[
                 self.obj.call('removeOwnerExported', {name=name})
             end
         }
-        Production = BOARD.obj.getTable('Production')
         ROOT_BAG = {
             obj = getObjectFromGUID(ROOT_BAG_GUID),
             putToTokenStorage = function(self, object)
@@ -33,9 +32,12 @@ local fractionTokenScript = [[
                 self.obj.call('removeFromTokenStorageExported', {guid=guid})
             end
         }
+        Production = BOARD.obj.getTable('Production')
+        Tag = Global.getTable('Tag')
+        self.addTag(Tag.FRACTION_TOKEN)
     end
 
-    function onDrop(player_color)        
+    function onDrop(player_color)
         Wait.time(|| delayedOnDrop(), 0.5)
     end
 
