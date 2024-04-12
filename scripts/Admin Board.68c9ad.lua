@@ -1,3 +1,5 @@
+require("scripts.util.zones")
+
 local heroFigureScript = [[
     BOARD_GUID = Global.getVar('BOARD_GUID')
     ADMIN_BOARD_GUID = Global.getVar('ADMIN_BOARD_GUID')
@@ -95,19 +97,6 @@ local fractionBoardScript = [[
 ]]
 
 function onLoad(script_state)
-    -- ------------------------------------------------------------
-    -- Importing functions
-    -- ------------------------------------------------------------
-    Global = {
-        obj = Global,
-        tableContains = function(self, table, elem)
-            return self.obj.call('tableContainsExported', {table=table, elem=elem})
-        end
-    }
-    -- ------------------------------------------------------------
-    -- Importing functions end
-    -- ------------------------------------------------------------
-
     for name, hero in pairs(heroes) do
         hero.figure.setLuaScript(heroFigureScript)
         hero.figure.setVar('NAME', name)
@@ -219,7 +208,7 @@ function deassignHero(heroCard, delay)
     if hero == nil then
         do return end
     end
-    hero.figure.setColorTint(DEFAULT_COLOR_TINK)
+    hero.figure.setColorTint(DEFAULT_COLOR_TINT)
     hero.fraction = nil
 
     Wait.time(function ()
@@ -259,6 +248,10 @@ function equipmentCount(hero_name, equip_name)
     return amount
 end
 
+-- ------------------------------------------------------------
+-- Fraction functions
+-- ------------------------------------------------------------
+
 function findFractionByColor(color)
     for name, fraction in pairs(fractions) do
         if fraction.color == color then
@@ -272,7 +265,7 @@ end
 -- ------------------------------------------------------------
 
 function onObjectDrop(player_color, object)
-    if object.tag != 'Deck' then
+    if object.type != 'Deck' then
         if zoneContain(HERO_CARD_START_ZONE, object) then
             deassignHero(object, 0.85)
         end
@@ -302,34 +295,13 @@ function onObjectLeaveContainer(container, object)
 end
 
 -- ------------------------------------------------------------
--- Zone utils
--- ------------------------------------------------------------
-
-function zoneContain(zone, object)
-    return Global:tableContains(zone.getObjects(), object)
-end
-
-function zoneDecksContain(zone, object)
-    for i, item in ipairs(zone.getObjects()) do
-        if item.tag == 'Deck' then
-            for j, card in ipairs(item.getObjects()) do
-                if card.guid == object.guid then
-                    return true
-                end
-            end
-        end
-    end
-    return false
-end
-
--- ------------------------------------------------------------
 -- Game data
 -- ------------------------------------------------------------
 
 HERO_FIGURE_START_ZONE = getObjectFromGUID('9e4aaf')
 HERO_FIGURES_ZONES_GUIDS = {'93c8a1', '49a450', '29f2ce', '2c6394', 'f666bc', '41749f'}
 HERO_CARD_START_ZONE = getObjectFromGUID('c5d6cc')
-DEFAULT_COLOR_TINK = Color(0, 0, 0, 255)
+DEFAULT_COLOR_TINT = Color(0, 0, 0, 255)
 
 heroes = {
     hunter = {
