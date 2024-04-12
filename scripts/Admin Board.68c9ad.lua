@@ -88,7 +88,7 @@ local fractionBoardScript = [[
     end
 ]]
 
-function onLoad()
+function onLoad(script_state)
     -- ------------------------------------------------------------
     -- Importing functions
     -- ------------------------------------------------------------
@@ -113,6 +113,23 @@ function onLoad()
         fraction.board.setLuaScript(fractionBoardScript)
         fraction.board.setVar('FRACTION', name)
     end
+    
+    if script_state != nil and script_state != '' then
+        script_state = JSON.decode(script_state)
+        for name, saved_hero in pairs(script_state) do
+            heroes[name].fraction = saved_hero.fraction
+        end
+    end
+end
+
+function onSave()
+    local hero_save_data = {}
+    for name, hero in pairs(heroes) do
+        if hero.fraction != nil then
+            hero_save_data[name] = {fraction = hero.fraction}
+        end
+    end
+    return JSON.encode(hero_save_data)
 end
 
 function generateButton(fraction)
