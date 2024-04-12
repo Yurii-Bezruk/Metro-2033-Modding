@@ -13,6 +13,9 @@ Tag = {
 function onLoad()
     clearDeskExtensions()
     
+    -- ------------------------------------------------------------
+    -- Importing functions
+    -- ------------------------------------------------------------
     ADMIN_BOARD = {
         obj = getObjectFromGUID(ADMIN_BOARD_GUID),
         findFractionByColor = function(self, color)
@@ -20,6 +23,9 @@ function onLoad()
             return res.name, res.fraction
         end
     }
+    -- ------------------------------------------------------------
+    -- Importing functions end
+    -- ------------------------------------------------------------
 end
 
 function clearDeskExtensions()

@@ -18,10 +18,13 @@ function onLoad()
         getActiveHeroes = function(self)
             return self.obj.call('getActiveHeroes')
         end,
-        hasEquipment = function(self, hero_name, equip_name)
-            return self.obj.call('hasEquipmentExported', {hero_name=hero_name, equip_name=equip_name})
+        equipmentCount = function(self, hero_name, equip_name)
+            return self.obj.call('equipmentCountExported', {hero_name=hero_name, equip_name=equip_name})
         end
     }
+    -- ------------------------------------------------------------
+    -- Importing functions end
+    -- ------------------------------------------------------------
 end
 
 -- ------------------------------------------------------------
@@ -49,10 +52,10 @@ function drawCircle(circle)
     local lines = self.getVectorLines()
     if lines == nil then lines = {} end
     lines = table.insert(lines, {
-      points    = getCircleVectorPoints(circle.radius, circle.position),
-      color     = circle.color,
-      thickness = circle.thickness,
-      rotation  = {0,-90, 0},
+        points    = getCircleVectorPoints(circle.radius, circle.position),
+        color     = circle.color,
+        thickness = circle.thickness,
+        rotation  = {0,-90, 0},
     })
     self.setVectorLines(lines)
 end
@@ -70,7 +73,6 @@ function getCircleVectorPoints(radius, position)
     end
     return t
 end
-
 
 -- ------------------------------------------------------------
 -- Stations
@@ -117,10 +119,11 @@ function stationAvailable(station, activeZones)
         or true
 end
 
-function highlightPossibleAttacks(fraction)
---    local color = Color(224/255, 36/255, 36/255, 1)
-    local color = Color(1, 0, 0, 1)
+-- ------------------------------------------------------------
+-- Attacks highlightion for army
+-- ------------------------------------------------------------
 
+function highlightPossibleAttacks(fraction)
     local ownedStations = getOwnedStations(fraction)
     if #ownedStations == 0 then
         do return end
@@ -135,8 +138,8 @@ function highlightPossibleAttacks(fraction)
 
     for heroName, hero in pairs(activeHeroes) do
         if hero.fraction == fraction then
-            -- saving station where our hero stands here
-            if ADMIN_BOARD:hasEquipment(heroName, 'locomotive') then
+            -- saving station where our hero stands if he has locomotive
+            if ADMIN_BOARD:equipmentCount(heroName, 'locomotive') > 0 then
                 heroStationName, heroStation = findStationByPosition(hero.figure.getPosition())
             end
         else
@@ -233,6 +236,10 @@ function putPolisNeighbours(polis, name, speed, activeZones, q)
     end
 end
 
+-- ------------------------------------------------------------
+-- Moves highlightion for hero
+-- ------------------------------------------------------------
+
 function highlightPossibleMoves(position, speed, isAnna)
     local origin_name, station = findStationByPosition(position)
     if station == nil then
@@ -243,7 +250,7 @@ function highlightPossibleMoves(position, speed, isAnna)
     for _, station_name in ipairs(possibleMoves) do
         highlight(station_name)
     end
-    highlightPosition(position, Color.GREEN)
+    highlight(origin_name, Color.GREEN)
 end
 
 function findPossibleMoves(name, speed, activeZones, isAnna)
@@ -271,6 +278,10 @@ function findPossibleMoves(name, speed, activeZones, isAnna)
     return set:getValues()
 end
 
+-- ------------------------------------------------------------
+-- Stations data
+-- ------------------------------------------------------------
+
 Production = {
     BULLET = 1,
     PORK = 2, 
@@ -289,7 +300,6 @@ StationType = {
     GANZA = 'GANZA',
     ABANDONED = 'ABANDONED'
 }
-
 
 stations = {
     aeroport = {
