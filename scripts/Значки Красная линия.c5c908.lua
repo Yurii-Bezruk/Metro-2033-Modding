@@ -34,13 +34,20 @@ local fractionTokenScript = [[
         }
         Production = BOARD.obj.getTable('Production')
         Tag = Global.getTable('Tag')
+        -- ------------------------------------------------------------
+        -- Importing functions end
+        -- ------------------------------------------------------------
         
         self.addTag(Tag.FRACTION_TOKEN)
+        loadScriptState(script_state)
+    end
+
+    function loadScriptState(script_state)
         if script_state != nil and script_state != '' then
             script_state = JSON.decode(script_state)
             FRACTION = script_state.fraction
             STATION = script_state.station
-            delayedOnDrop()
+            occupyStation()
         end
     end
 
@@ -52,10 +59,10 @@ local fractionTokenScript = [[
     end
 
     function onDrop(player_color)
-        Wait.time(|| delayedOnDrop(), 0.5)
+        Wait.time(|| occupyStation(), 0.5)
     end
 
-    function delayedOnDrop()
+    function occupyStation()
         local station_name, station = BOARD:findStationByPosition(self.getPosition())
         if station == nil then
             state = Production.GENERIC

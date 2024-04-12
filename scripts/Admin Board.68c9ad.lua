@@ -1,3 +1,5 @@
+require("scripts.util.zones")
+
 local heroFigureScript = [[
     BOARD_GUID = Global.getVar('BOARD_GUID')
     ADMIN_BOARD_GUID = Global.getVar('ADMIN_BOARD_GUID')
@@ -15,13 +17,15 @@ local heroFigureScript = [[
                 self.obj.call('clearAllHighlights')
             end
         }
-
         ADMIN_BOARD = {
             obj = getObjectFromGUID(ADMIN_BOARD_GUID),
             getHeroSpeed = function(self, heroFigure)
                 return self.obj.call('getHeroSpeed', heroFigure)
             end
         }
+        -- ------------------------------------------------------------
+        -- Importing functions end
+        -- ------------------------------------------------------------
     end
     
     function onDrop(player_color)
@@ -47,15 +51,16 @@ local heroCardScript = [[
             assignHero = function(self, heroCard)
                 self.obj.call('assignHero', heroCard)
             end
-        }        
+        }
+        -- ------------------------------------------------------------
+        -- Importing functions end
+        -- ------------------------------------------------------------
     end
     
     function onDrop(player_color)
-        Wait.time(|| delayedOnDrop(), 0.5)
-    end
-
-    function delayedOnDrop()
-        ADMIN_BOARD:assignHero(self)
+        Wait.time(function () 
+            ADMIN_BOARD:assignHero(self)
+        end, 0.5)
     end
 ]]
 
@@ -76,6 +81,9 @@ local fractionBoardScript = [[
                 self.obj.call('clearAllHighlights')
             end
         }
+        -- ------------------------------------------------------------
+        -- Importing functions end
+        -- ------------------------------------------------------------
     end
 
     function buttonClicked()
@@ -89,16 +97,6 @@ local fractionBoardScript = [[
 ]]
 
 function onLoad(script_state)
-    -- ------------------------------------------------------------
-    -- Importing functions
-    -- ------------------------------------------------------------
-    Global = {
-        obj = Global,
-        tableContains = function(self, table, elem)
-            return self.obj.call('tableContainsExported', {table=table, elem=elem})
-        end
-    }
-
     for name, hero in pairs(heroes) do
         hero.figure.setLuaScript(heroFigureScript)
         hero.figure.setVar('NAME', name)
@@ -114,6 +112,25 @@ function onLoad(script_state)
         fraction.board.setVar('FRACTION', name)
     end
     
+    loadScriptState(script_state)
+end
+
+function generateButton(fraction)
+    return [[
+        <button onClick = "buttonClicked" 
+            position = "0 -1070 -60" 
+            rotation = "180 0 0"
+            width = "300" 
+            height = "190" 
+            fontSize = "60" 
+            color = "]]..fraction.color:toString()..[["
+            outline = "black"
+            outlineSize = "5"
+        >Attack</button>
+    ]]
+end
+
+function loadScriptState(script_state)
     if script_state != nil and script_state != '' then
         script_state = JSON.decode(script_state)
         for name, saved_hero in pairs(script_state) do
@@ -132,21 +149,10 @@ function onSave()
     return JSON.encode(hero_save_data)
 end
 
-function generateButton(fraction)
-    return [[
-        <button onClick = "buttonClicked" 
-            position = "0 -1070 -60" 
-            rotation = "180 0 0"
-            width = "300" 
-            height = "190" 
-            fontSize = "60" 
-            color = "]]..fraction.color:toString()..[["
-            outline = "black"
-            outlineSize = "5"
-        >Attack</button>
-    ]]
-end
-    
+-- ------------------------------------------------------------
+-- Hero functions
+-- ------------------------------------------------------------
+
 function findHeroByCard(heroCard)
     for name, hero in pairs(heroes) do
         if hero.card_guid == heroCard.guid then
@@ -184,7 +190,7 @@ end
 
 function assignHero(heroCard)
     local hero_name, hero = findHeroByCard(heroCard)
-    if not zoneContain(hero_figure_start_zone, hero.figure) then
+    if not zoneContain(HERO_FIGURE_START_ZONE, hero.figure) then
         do return end
     end
     for name, fraction in pairs(fractions) do
@@ -202,11 +208,11 @@ function deassignHero(heroCard, delay)
     if hero == nil then
         do return end
     end
-    hero.figure.setColorTint(default_color_tint)
+    hero.figure.setColorTint(DEFAULT_COLOR_TINT)
     hero.fraction = nil
 
     Wait.time(function ()
-        for i, guid in ipairs(hero_figures_zones_guids) do
+        for i, guid in ipairs(HERO_FIGURES_ZONES_GUIDS) do
             local zone = getObjectFromGUID(guid)
             if #zone.getObjects() == 0 then
                 hero.figure.setPositionSmooth(zone.getPosition(), false, false)
@@ -219,13 +225,8 @@ end
 function getHeroSpeed(heroFigure)
     local name, hero = findHeroByFigure(heroFigure)
     local speed = hero.speed
-    for _, card in ipairs(getEquipment(hero)) do
-        if card.guid == equipment.locomotive[1] or card.guid == equipment.locomotive[2] then
-            speed = speed + 1
-        elseif card.guid == equipment.rpk[1] or card.guid == equipment.rpk[2] then
-            speed = speed - 1
-        end
-    end
+    speed = speed + equipmentCount(name, 'locomotive')
+    speed = speed - equipmentCount(name, 'rpk')
     return speed
 end
 
@@ -236,14 +237,20 @@ function getEquipment(hero)
     return fractions[hero.fraction].equipment_zone.getObjects()
 end
 
-function hasEquipment(hero_name, equip_name)
+function equipmentCount(hero_name, equip_name)
+    local amount = 0
     local hero = findHeroByName(hero_name)
     for _, card in ipairs(getEquipment(hero)) do
         if card.guid == equipment[equip_name][1] or card.guid == equipment[equip_name][2] then
-            return true
+            amount = amount + 1
         end
     end
+    return amount
 end
+
+-- ------------------------------------------------------------
+-- Fraction functions
+-- ------------------------------------------------------------
 
 function findFractionByColor(color)
     for name, fraction in pairs(fractions) do
@@ -258,13 +265,13 @@ end
 -- ------------------------------------------------------------
 
 function onObjectDrop(player_color, object)
-    if object.tag != 'Deck' then
-        if zoneContain(hero_card_start_zone, object) then
+    if object.type != 'Deck' then
+        if zoneContain(HERO_CARD_START_ZONE, object) then
             deassignHero(object, 0.85)
         end
     else
         -- if hero deck dropped to empty zone
-        if zoneContain(hero_card_start_zone, object) then
+        if zoneContain(HERO_CARD_START_ZONE, object) then
             for i, heroCard in ipairs(object.getObjects()) do
                 deassignHero(heroCard, i * 0.85)
             end
@@ -272,7 +279,7 @@ function onObjectDrop(player_color, object)
         end
         -- if one part of deck dropped onto another part in the zone
         for i, heroCard in ipairs(object.getObjects()) do
-            if zoneDecksContain(hero_card_start_zone, heroCard) then
+            if zoneDecksContain(HERO_CARD_START_ZONE, heroCard) then
                 deassignHero(heroCard, i * 0.85)
             end
         end
@@ -282,40 +289,19 @@ end
 
 
 function onObjectLeaveContainer(container, object)
-    if zoneContain(hero_card_start_zone, container) then
+    if zoneContain(HERO_CARD_START_ZONE, container) then
         object.setLuaScript(heroCardScript)
     end
-end
-
--- ------------------------------------------------------------
--- Zone utils
--- ------------------------------------------------------------
-
-function zoneContain(zone, object)
-    return Global:tableContains(zone.getObjects(), object)
-end
-
-function zoneDecksContain(zone, object)
-    for i, item in ipairs(zone.getObjects()) do
-        if item.tag == 'Deck' then
-            for j, card in ipairs(item.getObjects()) do
-                if card.guid == object.guid then
-                    return true
-                end
-            end
-        end
-    end
-    return false
 end
 
 -- ------------------------------------------------------------
 -- Game data
 -- ------------------------------------------------------------
 
-hero_figure_start_zone = getObjectFromGUID('9e4aaf')
-hero_figures_zones_guids = {'93c8a1', '49a450', '29f2ce', '2c6394', 'f666bc', '41749f'}
-hero_card_start_zone = getObjectFromGUID('c5d6cc')
-default_color_tint = Color(0, 0, 0, 255)
+HERO_FIGURE_START_ZONE = getObjectFromGUID('9e4aaf')
+HERO_FIGURES_ZONES_GUIDS = {'93c8a1', '49a450', '29f2ce', '2c6394', 'f666bc', '41749f'}
+HERO_CARD_START_ZONE = getObjectFromGUID('c5d6cc')
+DEFAULT_COLOR_TINT = Color(0, 0, 0, 255)
 
 heroes = {
     hunter = {
@@ -429,8 +415,8 @@ equipment = {
 -- Exporting functions
 -- ------------------------------------------------------------
 
-function hasEquipmentExported(args)
-    return hasEquipment(args.hero_name, args.equip_name)
+function equipmentCountExported(args)
+    return equipmentCount(args.hero_name, args.equip_name)
 end
 
 function findFractionByColorExported(color)

@@ -1,27 +1,28 @@
+require("scripts.util.tables")
+require("scripts.util.rounding")
+require("scripts.util.circle")
+require("scripts.util.Set")
+require("scripts.util.Queue")
+
+IGNORE_INACTIVE_ZONES = Global.getVar('IGNORE_INACTIVE_ZONES')
 ADMIN_BOARD_GUID = Global.getVar('ADMIN_BOARD_GUID')
 
 function onLoad()
     -- ------------------------------------------------------------
     -- Importing functions
     -- ------------------------------------------------------------
-    Global = {
-        obj = Global,
-        roundVector = function(self, vector, scale)
-            return self.obj.call('roundVectorExported', {vector=vector, scale=scale})
-        end,
-        tableContains = function(self, table, elem)
-            return self.obj.call('tableContainsExported', {table=table, elem=elem})
-        end
-    }
     ADMIN_BOARD = {
         obj = getObjectFromGUID(ADMIN_BOARD_GUID),
         getActiveHeroes = function(self)
             return self.obj.call('getActiveHeroes')
         end,
-        hasEquipment = function(self, hero_name, equip_name)
-            return self.obj.call('hasEquipmentExported', {hero_name=hero_name, equip_name=equip_name})
+        equipmentCount = function(self, hero_name, equip_name)
+            return self.obj.call('equipmentCountExported', {hero_name=hero_name, equip_name=equip_name})
         end
     }
+    -- ------------------------------------------------------------
+    -- Importing functions end
+    -- ------------------------------------------------------------
 end
 
 -- ------------------------------------------------------------
@@ -29,15 +30,15 @@ end
 -- ------------------------------------------------------------
 
 function clearAllHighlights()
-    self.setVectorLines({})
+    clearCircle(self)
 end
 
 function highlightPosition(position, color)
-    position = position:copy() * 0.485
     if color == nil then
         color = Color.YELLOW
     end
-    drawCircle({
+    position = position:copy() * 0.485
+    drawCircle(self, {
         radius    = 0.23, 
         color     = color,
         thickness = 0.04,
@@ -45,39 +46,12 @@ function highlightPosition(position, color)
     })
 end
 
-function drawCircle(circle)
-    local lines = self.getVectorLines()
-    if lines == nil then lines = {} end
-    lines = table.insert(lines, {
-      points    = getCircleVectorPoints(circle.radius, circle.position),
-      color     = circle.color,
-      thickness = circle.thickness,
-      rotation  = {0,-90, 0},
-    })
-    self.setVectorLines(lines)
-end
-
-function getCircleVectorPoints(radius, position)
-    local steps = 32
-    local d = 360 / steps
-    local t = {}
-    for i = 0, steps do
-        table.insert(t, {
-            position.x + (math.cos(math.rad(d * i)) * radius),
-            position.y,
-            position.z + (math.sin(math.rad(d * i)) * radius)
-        })
-    end
-    return t
-end
-
-
 -- ------------------------------------------------------------
 -- Stations
 -- ------------------------------------------------------------
 
 function findStationByPosition(position)   
-    local position = Global:roundVector(position, 2)
+    local position = roundVector(position, 2)
     for name, station in pairs(stations) do
         if station.position.x == position.x and station.position.z == position.z then
             return name, station
@@ -94,7 +68,10 @@ function highlight(name, color)
 end
 
 function setOwner(name, owner)
-    stations[name].owner = owner
+    if (stations[name].type == StationType.NEUTRAL or stations[name].type == StationType.POLIS)
+        and stationAvailable(stations[name], getSeatedPlayers()) then 
+        stations[name].owner = owner
+    end
 end
 
 function removeOwner(name)
@@ -112,15 +89,18 @@ function getOwnedStations(fraction)
 end
 
 function stationAvailable(station, activeZones)
+    if not IGNORE_INACTIVE_ZONES then
+        return true
+    end
     return station.type == StationType.POLIS
-        or Global:tableContains(activeZones, station.zone:toString())
-        or true
+        or tableContains(activeZones, station.zone:toString())
 end
 
-function highlightPossibleAttacks(fraction)
---    local color = Color(224/255, 36/255, 36/255, 1)
-    local color = Color(1, 0, 0, 1)
+-- ------------------------------------------------------------
+-- Attacks highlightion for army
+-- ------------------------------------------------------------
 
+function highlightPossibleAttacks(fraction)
     local ownedStations = getOwnedStations(fraction)
     if #ownedStations == 0 then
         do return end
@@ -135,14 +115,14 @@ function highlightPossibleAttacks(fraction)
 
     for heroName, hero in pairs(activeHeroes) do
         if hero.fraction == fraction then
-            -- saving station where our hero stands here
-            if ADMIN_BOARD:hasEquipment(heroName, 'locomotive') then
+            -- saving station where our hero stands if he has locomotive
+            if ADMIN_BOARD:equipmentCount(heroName, 'locomotive') > 0 then
                 heroStationName, heroStation = findStationByPosition(hero.figure.getPosition())
             end
         else
             -- for other heroes checking if they standing on our stations and adding to occupied stations if so
             local occupiedStation, _ = findStationByPosition(hero.figure.getPosition())
-            if occupiedStation != nil and Global:tableContains(ownedStations, occupiedStation) then
+            if occupiedStation != nil and tableContains(ownedStations, occupiedStation) then
                 table.insert(occupiedStations, occupiedStation)
             end
         end
@@ -162,7 +142,7 @@ function highlightPossibleAttacks(fraction)
 
     possibleAttacks:removeAll(ownedStations)
     possibleAttacks:putAll(occupiedStations)
-    if highlightLocomotive == true then
+    if highlightLocomotive == true and stationAvailable(heroStation, activeZones) then
         possibleAttacks:put(heroStationName)    
     end
     for i, name in ipairs(possibleAttacks:getValues()) do
@@ -233,17 +213,23 @@ function putPolisNeighbours(polis, name, speed, activeZones, q)
     end
 end
 
+-- ------------------------------------------------------------
+-- Moves highlightion for hero
+-- ------------------------------------------------------------
+
 function highlightPossibleMoves(position, speed, isAnna)
     local origin_name, station = findStationByPosition(position)
     if station == nil then
         do return end
     end
     local activeZones = getSeatedPlayers()
-    local possibleMoves = findPossibleMoves(origin_name, speed, activeZones, isAnna)
-    for _, station_name in ipairs(possibleMoves) do
-        highlight(station_name)
+    if stationAvailable(station, activeZones) then 
+        local possibleMoves = findPossibleMoves(origin_name, speed, activeZones, isAnna)
+        for _, station_name in ipairs(possibleMoves) do
+            highlight(station_name)
+        end
     end
-    highlightPosition(position, Color.GREEN)
+    highlight(origin_name, Color.GREEN)
 end
 
 function findPossibleMoves(name, speed, activeZones, isAnna)
@@ -271,6 +257,10 @@ function findPossibleMoves(name, speed, activeZones, isAnna)
     return set:getValues()
 end
 
+-- ------------------------------------------------------------
+-- Stations data
+-- ------------------------------------------------------------
+
 Production = {
     BULLET = 1,
     PORK = 2, 
@@ -289,7 +279,6 @@ StationType = {
     GANZA = 'GANZA',
     ABANDONED = 'ABANDONED'
 }
-
 
 stations = {
     aeroport = {
@@ -1139,78 +1128,6 @@ stations = {
         }
     }
 }
-
--- ------------------------------------------------------------
--- Set structure
--- ------------------------------------------------------------
-
-function Set()
-    return {
-        size = 0,
-        array = {},
-        put = function (self, elem)
-            if self.array[elem] then
-                return
-            end
-            self.array[elem] = true
-            self.size = self.size + 1
-        end,
-        putAll = function (self, arr)
-            for i, elem in ipairs(arr) do
-                self:put(elem)
-            end
-        end,
-        remove = function (self, elem)
-            if self.array[elem] then
-                self.array[elem] = false
-                self.size = self.size - 1
-            end
-        end,
-        removeAll = function (self, arr)
-            for i, elem in ipairs(arr) do
-                self:remove(elem)
-            end
-        end,
-        contains = function (self, elem)
-            if self.array[elem] then
-                return true
-            end
-            return false
-        end,
-        getValues = function (self)
-            local keys = {}
-            for key, value in pairs(self.array) do
-                if value then
-                    table.insert(keys, key)
-                end
-            end
-            return keys
-        end
-    }
-end
-
--- ------------------------------------------------------------
--- Queue structure
--- ------------------------------------------------------------
-
-function Queue()
-    return {
-        size = 0,
-        array = {},
-        put = function (self, elem)
-            table.insert(self.array, elem)
-            self.size = self.size + 1
-        end,
-        pop = function (self)
-            local elem = table.remove(self.array, 1)            
-            self.size = self.size - 1
-            return elem        
-        end,
-        getValues = function (self)
-            return self.array
-        end
-    }
-end
 
 -- ------------------------------------------------------------
 -- Exporting functions

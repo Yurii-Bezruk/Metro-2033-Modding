@@ -1,3 +1,9 @@
+require("scripts.util.tables")
+
+-- Set to false during testing to make all stations available. 
+-- Value of true allows to move only to seated players' zones
+IGNORE_INACTIVE_ZONES = true
+
 ROOT_BAG_GUID = 'c5c908'
 BOARD_GUID = 'b6a25e'
 ADMIN_BOARD_GUID = '68c9ad'
@@ -13,6 +19,9 @@ Tag = {
 function onLoad()
     clearDeskExtensions()
     
+    -- ------------------------------------------------------------
+    -- Importing functions
+    -- ------------------------------------------------------------
     ADMIN_BOARD = {
         obj = getObjectFromGUID(ADMIN_BOARD_GUID),
         findFractionByColor = function(self, color)
@@ -20,12 +29,15 @@ function onLoad()
             return res.name, res.fraction
         end
     }
+    -- ------------------------------------------------------------
+    -- Importing functions end
+    -- ------------------------------------------------------------
 end
 
 function clearDeskExtensions()
-    local addition_desks = getObjectsFromGUIDs({'15ef07', '1c3b49', 'bb444e', '918452'})
-    for _, b in ipairs(addition_desks) do
-        b.setSnapPoints({})
+    local addition_desks = {'15ef07', '1c3b49', 'bb444e', '918452'}
+    for _, guid in ipairs(addition_desks) do
+        getObjectFromGUID(guid).setSnapPoints({})
     end
 end
 
@@ -65,67 +77,4 @@ function onDelete(player, targets)
         end
     end
     return true
-end
-
--- ------------------------------------------------------------
--- Util functions
--- ------------------------------------------------------------
-
-function getObjectsFromGUIDs(guids)
-    local objects = {}
-    for i, guid in ipairs(guids) do
-        objects[i] = getObjectFromGUID(guid)
-    end
-    return objects
-end
-
-function round(x, scale)
-    if x < 0 then
-        return math.ceil(x * 10^scale) / 10^scale
-    end
-    return math.floor(x * 10^scale) / 10^scale
-end
-
-function roundVector(vector, scale)
-    return Vector(
-        round(vector.x, scale), 
-        round(vector.y, scale),
-        round(vector.z, scale)
-    )
-end
-
-function tableSize(table)
-    local size = 0
-    for i in pairs(table) do 
-        size = size + 1 
-    end
-    return size
-end
-
-function tableContains(table, elem)
-    for i, value in ipairs(table) do 
-        if value == elem then
-            return true
-        end
-    end
-    return false
-end
-
-function tableKeys(t)
-    local keys = {}
-    for key, value in pairs(t) do 
-        table.insert(keys, key)
-    end
-    return keys
-end
-
--- ------------------------------------------------------------
--- Exporting functions
--- ------------------------------------------------------------
-function roundVectorExported(args)
-    return roundVector(args.vector, args.scale)
-end
-
-function tableContainsExported(args)
-    return tableContains(args.table, args.elem)
 end
