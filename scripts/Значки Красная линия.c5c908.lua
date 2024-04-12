@@ -3,7 +3,7 @@ local fractionTokenScript = [[
     ROOT_BAG_GUID = Global.getVar('ROOT_BAG_GUID')
     CHANGED_STATE = false
     
-    function onLoad()
+    function onLoad(script_state)
         -- ------------------------------------------------------------
         -- Importing functions
         -- ------------------------------------------------------------
@@ -34,7 +34,21 @@ local fractionTokenScript = [[
         }
         Production = BOARD.obj.getTable('Production')
         Tag = Global.getTable('Tag')
+        
         self.addTag(Tag.FRACTION_TOKEN)
+        if script_state != nil and script_state != '' then
+            script_state = JSON.decode(script_state)
+            FRACTION = script_state.fraction
+            STATION = script_state.station
+            delayedOnDrop()
+        end
+    end
+
+    function onSave()
+        return JSON.encode({
+            fraction = FRACTION,
+            station = STATION
+        })
     end
 
     function onDrop(player_color)
