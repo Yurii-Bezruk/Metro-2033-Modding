@@ -16,9 +16,7 @@ Tag = {
     FRACTION_TOKEN = 'FRACTION_TOKEN'
 }
 
-function onLoad()
-    clearDeskExtensions()
-    
+function onLoad()    
     -- ------------------------------------------------------------
     -- Importing functions
     -- ------------------------------------------------------------
@@ -32,12 +30,40 @@ function onLoad()
     -- ------------------------------------------------------------
     -- Importing functions end
     -- ------------------------------------------------------------
+
+    clearDeskExtensions()
+    promotePlayers()
 end
 
 function clearDeskExtensions()
     local addition_desks = {'15ef07', '1c3b49', 'bb444e', '918452'}
     for _, guid in ipairs(addition_desks) do
         getObjectFromGUID(guid).setSnapPoints({})
+    end
+end
+
+function promotePlayers()
+    for i, player in ipairs(Player.getPlayers()) do
+        if not tableContains({'White', 'Grey', 'Black'}, player.color) and not player.promoted then
+            player.promote()
+        end
+    end
+end
+
+function findPlayerByColor(color)
+    for i, player in ipairs(Player.getPlayers()) do
+        if player.color == color then
+            return player
+        end
+    end
+end
+
+function onPlayerChangeColor(color)
+    if not tableContains({'White', 'Grey', 'Black'}, color) then
+        local player = findPlayerByColor(color)
+        if not player.promoted then
+            player.promote()
+        end
     end
 end
 
