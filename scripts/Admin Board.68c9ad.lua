@@ -306,37 +306,37 @@ DEFAULT_COLOR_TINT = Color(0, 0, 0, 255)
 heroes = {
     hunter = {
         figure = getObjectFromGUID('742d9b'),
-        card_guid = '84cac2',
+        card_guid = '4e1b3f',
         speed = 3,
         power = 3
     },
     artyom = {
         figure = getObjectFromGUID('a75f15'),
-        card_guid = '010d75',
+        card_guid = 'b13aa9',
         speed = 3,
         power = 2
     },
     anna = {
         figure = getObjectFromGUID('f1bb37'),
-        card_guid = 'c053bd',
+        card_guid = '29873d',
         speed = 3,
         power = 3
     },
     melnik = {
         figure = getObjectFromGUID('3b7793'),
-        card_guid = '992322',
+        card_guid = '88f769',
         speed = 3,
         power = 2
     },
     han = {
         figure = getObjectFromGUID('d6b5ec'),
-        card_guid = 'd86ab1',
+        card_guid = '6eb1e5',
         speed = 3,
         power = 3
     },
     sasha = {
         figure = getObjectFromGUID('96a7f8'),
-        card_guid = 'ee9aa0',
+        card_guid = '6762c8',
         speed = 3,
         power = 2
     }
@@ -400,15 +400,15 @@ fractions = {
 }
 
 equipment = {
-    akm = {'813764', '6abca3'},
-    shotgun = {'9f5bf7', '1abef9'},
-    geiger = {'fab133', '1bb319'},
-    svd = {'04c3a2', '05ac82'},
-    rpk = {'efb094', '819e35'},
-    locomotive = {'390b3b', '0d6c57'},
-    flag = {'a82bc5', '5c753c'},
-    grenade = {'f1f814', '3a977b'},
-    dynamite = {'9b837c', 'b48ae5'}
+    akm = {'6c763b', '3c5c36'},
+    shotgun = {'48d664', '2fd936'},
+    geiger = {'08fd93', '120ff8'},
+    svd = {'f71050', '7c51de'},
+    rpk = {'d74fbd', '786e02'},
+    locomotive = {'bdde07', '0dd68b'},
+    flag = {'0fbe3a', 'fba4fe'},
+    grenade = {'bd026e', 'fd2f18'},
+    dynamite = {'2bf6cc', '6d6817'}
 }
 
 -- ------------------------------------------------------------
