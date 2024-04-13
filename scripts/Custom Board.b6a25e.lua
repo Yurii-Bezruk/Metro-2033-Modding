@@ -108,9 +108,10 @@ function highlightPossibleAttacks(fraction)
     if #ownedStations == 0 then
         do return end
     end
-    local possibleAttacks = Set()    
     local activeHeroes = ADMIN_BOARD:getActiveHeroes()
+    local possibleAttacks = Set()
     local occupiedStations = {}
+    local abandonedOccupiedStations = {}
     local highlightLocomotive = false
     local heroStationName = nil
     local heroStation = nil
@@ -122,10 +123,16 @@ function highlightPossibleAttacks(fraction)
                 heroStationName, heroStation = findStationByPosition(hero.figure.getPosition())
             end
         else
-            -- for other heroes checking if they standing on our stations and adding to occupied stations if so
-            local occupiedStation, _ = findStationByPosition(hero.figure.getPosition())
-            if occupiedStation != nil and tableContains(ownedStations, occupiedStation) then
-                table.insert(occupiedStations, occupiedStation)
+            -- for other heroes
+            local occupiedStationName, occupiedStation = findStationByPosition(hero.figure.getPosition())
+            if occupiedStationName != nil then
+                -- adding to occupied stations if they standing on our station 
+                if tableContains(ownedStations, occupiedStationName) then
+                    table.insert(occupiedStations, occupiedStationName)
+                -- adding to abandoned stations if they standing abandoned station
+                elseif occupiedStation.type == StationType.ABANDONED then
+                    table.insert(abandonedOccupiedStations, occupiedStationName)
+                end
             end
         end
     end
@@ -139,7 +146,7 @@ function highlightPossibleAttacks(fraction)
 
     -- searching for all possible attacks from our stations
     for i, name in ipairs(ownedStations) do
-        possibleAttacks:putAll(findPossibleAttacks(name, ownedStations))
+        possibleAttacks:putAll(findPossibleAttacks(name, ownedStations, abandonedOccupiedStations))
     end
 
     possibleAttacks:removeAll(ownedStations)
@@ -152,11 +159,11 @@ function highlightPossibleAttacks(fraction)
     end
 end
 
-function findPossibleAttacks(name, ownedStationNames)
+function findPossibleAttacks(name, ownedStations, abandonedOccupiedStations)
     local speed = 1
     local set = Set()
     local q = Queue()
-    set:putAll(ownedStationNames)
+    set:putAll(ownedStations)
     q:put({station=stations[name], name=name, speed=speed})
     
     while q.size > 0 do
@@ -173,6 +180,8 @@ function findPossibleAttacks(name, ownedStationNames)
                     elseif neighbour.type == StationType.POLIS then
                         putPolisNeighbours(neighbour, neighbour_name, nextSpeed, q)
                     elseif neighbour.type == StationType.NEUTRAL then
+                        q:put({station=neighbour, name=neighbour_name, speed=nextSpeed})
+                    elseif neighbour.type == StationType.ABANDONED and tableContains(abandonedOccupiedStations, neighbour_name) then
                         q:put({station=neighbour, name=neighbour_name, speed=nextSpeed})
                     end
                 end
@@ -204,11 +213,13 @@ function putPolisNeighbours(polis, name, speed, q)
     for neighbour_name, type in pairs(polis.neighbours) do
         if stations[neighbour_name].type == StationType.POLIS then
             q:put({station=stations[neighbour_name], name=neighbour_name, speed=speed})
-            for travel_name, travel_type in pairs(stations[neighbour_name].neighbours) do 
-                if stationAvailable(stations[travel_name]) and stations[neighbour_name].owner == nil then
-                    q:put({station=stations[travel_name], name=travel_name, speed=speed})
+            if stations[neighbour_name].owner == nil then
+                for travel_name, travel_type in pairs(stations[neighbour_name].neighbours) do 
+                    if stationAvailable(stations[travel_name]) then
+                        q:put({station=stations[travel_name], name=travel_name, speed=speed})
+                    end
                 end
-            end
+            end            
         elseif stationAvailable(stations[neighbour_name]) then
             q:put({station=stations[neighbour_name], name=neighbour_name, speed=speed})
         end
