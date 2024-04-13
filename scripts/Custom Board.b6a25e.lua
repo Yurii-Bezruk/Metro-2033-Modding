@@ -605,7 +605,7 @@ stations = {
         }
     },
     lubyanka = {
-        position = Vector(-2.49, 0.6, 1.43),
+        position = Vector(-2.52, 0.6, 1.38),
         zone = Color.RED,
         type = StationType.NEUTRAL,
         production = Production.PORK,
@@ -616,7 +616,7 @@ stations = {
         }
     },    
     kuznetskiy_most = {
-        position = Vector(-1.83, 0.6, 2.09),
+        position = Vector(-1.84, 0.6, 2.14),
         zone = Color.RED,
         type = StationType.NEUTRAL,
         production = Production.MUSHROOM,
