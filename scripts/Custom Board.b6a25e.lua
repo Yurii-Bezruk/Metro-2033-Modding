@@ -50,7 +50,7 @@ end
 -- Stations
 -- ------------------------------------------------------------
 
-function findStationByPosition(position)   
+function findStationByPosition(position)
     local position = roundVector(position, 2)
     for name, station in pairs(stations) do
         if station.position.x == position.x and station.position.z == position.z then
@@ -67,9 +67,12 @@ function highlight(name, color)
     highlightPosition(stations[name].position, color)
 end
 
-function setOwner(name, owner)
-    if (stations[name].type == StationType.NEUTRAL or stations[name].type == StationType.POLIS)
-        and stationAvailable(stations[name], getSeatedPlayers()) then 
+function setOwner(name, owner, onLoad)
+    local available = true
+    if not onLoad then
+        available = stationAvailable(stations[name], getSeatedPlayers())
+    end
+    if available and (stations[name].type == StationType.NEUTRAL or stations[name].type == StationType.POLIS) then
         stations[name].owner = owner
     end
 end
@@ -1143,7 +1146,7 @@ function findStationByNameExported(args)
 end
 
 function setOwnerExported(args)
-    return setOwner(args.name, args.owner)
+    return setOwner(args.name, args.owner, args.onLoad)
 end
 
 function removeOwnerExported(args)
