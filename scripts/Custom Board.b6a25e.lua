@@ -111,7 +111,7 @@ function highlightPossibleAttacks(fraction)
     local activeHeroes = ADMIN_BOARD:getActiveHeroes()
     local possibleAttacks = Set()
     local occupiedStations = {}
-    local abandonedOccupiedStations = {}
+    local occupiedAbandonedStations = {}
     local highlightLocomotive = false
     local heroStationName = nil
     local heroStation = nil
@@ -131,7 +131,7 @@ function highlightPossibleAttacks(fraction)
                     table.insert(occupiedStations, occupiedStationName)
                 -- adding to abandoned stations if they standing abandoned station
                 elseif occupiedStation.type == StationType.ABANDONED then
-                    table.insert(abandonedOccupiedStations, occupiedStationName)
+                    table.insert(occupiedAbandonedStations, occupiedStationName)
                 end
             end
         end
@@ -146,7 +146,7 @@ function highlightPossibleAttacks(fraction)
 
     -- searching for all possible attacks from our stations
     for i, name in ipairs(ownedStations) do
-        possibleAttacks:putAll(findPossibleAttacks(name, ownedStations, abandonedOccupiedStations))
+        possibleAttacks:putAll(findPossibleAttacks(name, ownedStations, occupiedAbandonedStations))
     end
 
     possibleAttacks:removeAll(ownedStations)
@@ -159,7 +159,7 @@ function highlightPossibleAttacks(fraction)
     end
 end
 
-function findPossibleAttacks(name, ownedStations, abandonedOccupiedStations)
+function findPossibleAttacks(name, ownedStations, occupiedAbandonedStations)
     local speed = 1
     local set = Set()
     local q = Queue()
@@ -176,12 +176,12 @@ function findPossibleAttacks(name, ownedStations, abandonedOccupiedStations)
                 local nextSpeed = next.speed - 1
                 if nextSpeed >= 0 then
                     if neighbour.type == StationType.GANZA then
-                        putGanzaNeighbours(neighbour, nextSpeed, q)
+                        putGanzaNeighbours(neighbour, nextSpeed, occupiedAbandonedStations, q)
                     elseif neighbour.type == StationType.POLIS then
                         putPolisNeighbours(neighbour, neighbour_name, nextSpeed, q)
                     elseif neighbour.type == StationType.NEUTRAL then
                         q:put({station=neighbour, name=neighbour_name, speed=nextSpeed})
-                    elseif neighbour.type == StationType.ABANDONED and tableContains(abandonedOccupiedStations, neighbour_name) then
+                    elseif neighbour.type == StationType.ABANDONED and tableContains(occupiedAbandonedStations, neighbour_name) then
                         q:put({station=neighbour, name=neighbour_name, speed=nextSpeed})
                     end
                 end
@@ -191,13 +191,15 @@ function findPossibleAttacks(name, ownedStations, abandonedOccupiedStations)
     return set:getValues()
 end
 
-function putGanzaNeighbours(ganza, speed, q)
+function putGanzaNeighbours(ganza, speed, occupiedAbandonedStations, q)
     for neighbour_name, type in pairs(ganza.neighbours) do
         if type == Neighbouring.TUNNEL then
             for travel_name, travel_type in pairs(stations[neighbour_name].neighbours) do 
                 if travel_type == Neighbouring.PASSAGE 
                     and stationAvailable(stations[travel_name])
-                    and stations[travel_name].type != StationType.ABANDONED then
+                    and (stations[travel_name].type != StationType.ABANDONED
+                        or (stations[travel_name].type == StationType.ABANDONED 
+                            and tableContains(occupiedAbandonedStations, travel_name))) then
                     q:put({station=stations[travel_name], name=travel_name, speed=speed})                
                 end
             end
@@ -219,7 +221,7 @@ function putPolisNeighbours(polis, name, speed, q)
                         q:put({station=stations[travel_name], name=travel_name, speed=speed})
                     end
                 end
-            end            
+            end
         elseif stationAvailable(stations[neighbour_name]) then
             q:put({station=stations[neighbour_name], name=neighbour_name, speed=speed})
         end
