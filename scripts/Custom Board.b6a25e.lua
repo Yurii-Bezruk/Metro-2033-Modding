@@ -6,6 +6,7 @@ require("scripts.util.Queue")
 
 IGNORE_INACTIVE_ZONES = Global.getVar('IGNORE_INACTIVE_ZONES')
 ADMIN_BOARD_GUID = Global.getVar('ADMIN_BOARD_GUID')
+HIGHLIGHTED_BY = nil
 
 function onLoad()
     -- ------------------------------------------------------------
@@ -31,13 +32,14 @@ end
 
 function clearAllHighlights()
     clearCircle(self)
+    HIGHLIGHTED_BY = nil
 end
 
-function highlightPosition(position, color)
+function highlight(name, color)
     if color == nil then
         color = Color.YELLOW
     end
-    position = position:copy() * 0.485
+    position = stations[name].position:copy() * 0.485
     drawCircle(self, {
         radius    = 0.23, 
         color     = color,
@@ -61,10 +63,6 @@ end
 
 function findStationByName(name)
     return stations[name]
-end
-
-function highlight(name, color)
-    highlightPosition(stations[name].position, color)
 end
 
 function setOwner(name, owner, onLoad)
@@ -157,6 +155,7 @@ function highlightPossibleAttacks(fraction)
     for i, name in ipairs(possibleAttacks:getValues()) do
         highlight(name)
     end
+    HIGHLIGHTED_BY = fraction
 end
 
 function findPossibleAttacks(name, ownedStations, occupiedAbandonedStations)
@@ -232,11 +231,12 @@ end
 -- Moves highlightion for hero
 -- ------------------------------------------------------------
 
-function highlightPossibleMoves(position, speed, isAnna)
+function highlightPossibleMoves(position, speed, heroName)
     local origin_name, station = findStationByPosition(position)
     if station == nil then
         do return end
     end
+    local isAnna = heroName == 'anna'
     if stationAvailable(station) then 
         local possibleMoves = findPossibleMoves(origin_name, speed, isAnna)
         for _, station_name in ipairs(possibleMoves) do
@@ -244,6 +244,7 @@ function highlightPossibleMoves(position, speed, isAnna)
         end
     end
     highlight(origin_name, Color.GREEN)
+    HIGHLIGHTED_BY = heroName
 end
 
 function findPossibleMoves(name, speed, isAnna)
@@ -1165,7 +1166,7 @@ function removeOwnerExported(args)
 end
 
 function highlightPossibleMovesExported(args)
-    return highlightPossibleMoves(args.position, args.speed, args.isAnna)
+    return highlightPossibleMoves(args.position, args.speed, args.heroName)
 end
 
 function highlightPossibleAttacksExported(args)

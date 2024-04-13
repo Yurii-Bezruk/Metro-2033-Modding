@@ -10,8 +10,8 @@ local heroFigureScript = [[
         -- ------------------------------------------------------------
         BOARD = {
             obj = getObjectFromGUID(BOARD_GUID),
-            highlightPossibleMoves = function(self, position, speed, isAnna)
-                self.obj.call('highlightPossibleMovesExported', {position=position, speed=speed, isAnna=isAnna})
+            highlightPossibleMoves = function(self, position, speed, heroName)
+                self.obj.call('highlightPossibleMovesExported', {position=position, speed=speed, heroName=heroName})
             end,
             clearAllHighlights = function(self)
                 self.obj.call('clearAllHighlights')
@@ -29,13 +29,24 @@ local heroFigureScript = [[
     end
     
     function onDrop(player_color)
-        BOARD:clearAllHighlights()
+        if canHighlight() then
+            BOARD:clearAllHighlights()
+        end
     end
 
     function onPickUp(player_color)
-        local speed = ADMIN_BOARD:getHeroSpeed(self)
-        local isAnna = NAME == 'anna'
-        BOARD:highlightPossibleMoves(self.getPosition(), speed, isAnna)
+        if canHighlight() then
+            local speed = ADMIN_BOARD:getHeroSpeed(self)
+            BOARD:highlightPossibleMoves(self.getPosition(), speed, NAME)
+        end
+    end
+
+    function canHighlight()
+        local highlightedBy = BOARD.obj.getVar('HIGHLIGHTED_BY')
+        if highlightedBy != nil and highlightedBy != NAME then
+            return false
+        end
+        return true
     end
 ]]
 
@@ -87,12 +98,22 @@ local fractionBoardScript = [[
     end
 
     function buttonClicked()
-        active = not active
-        if active then
-            BOARD:highlightPossibleAttacks(FRACTION)
-        else    
-            BOARD:clearAllHighlights()
+        if canHighlight() then
+            active = not active
+            if active then
+                BOARD:highlightPossibleAttacks(FRACTION)
+            else    
+                BOARD:clearAllHighlights()
+            end
         end
+    end
+
+    function canHighlight()
+        local highlightedBy = BOARD.obj.getVar('HIGHLIGHTED_BY')
+        if highlightedBy != nil and highlightedBy != FRACTION then
+            return false
+        end
+        return true
     end
 ]]
 
