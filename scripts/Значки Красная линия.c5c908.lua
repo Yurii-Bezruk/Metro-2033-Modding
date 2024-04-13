@@ -13,8 +13,8 @@ local fractionTokenScript = [[
                 res = self.obj.call('findStationByPositionExported', position)
                 return res.name, res.station
             end,
-            setOwner = function(self, name, owner)
-                self.obj.call('setOwnerExported', {name=name, owner=owner})
+            setOwner = function(self, name, owner, onLoad)
+                self.obj.call('setOwnerExported', {name=name, owner=owner, onLoad=onLoad})
             end,
             removeOwner = function(self, name, owner)
                 self.obj.call('removeOwnerExported', {name=name})
@@ -47,7 +47,7 @@ local fractionTokenScript = [[
             script_state = JSON.decode(script_state)
             FRACTION = script_state.fraction
             STATION = script_state.station
-            occupyStation()
+            occupyStation(true)
         end
     end
 
@@ -59,17 +59,17 @@ local fractionTokenScript = [[
     end
 
     function onDrop(player_color)
-        Wait.time(|| occupyStation(), 0.5)
+        Wait.time(|| occupyStation(false), 0.5)
     end
 
-    function occupyStation()
+    function occupyStation(onLoad)
         local station_name, station = BOARD:findStationByPosition(self.getPosition())
         if station == nil then
             state = Production.GENERIC
             STATION = nil
         else
             state = station.production
-            BOARD:setOwner(station_name, FRACTION)
+            BOARD:setOwner(station_name, FRACTION, onLoad)
             STATION = station_name
         end
         ROOT_BAG:putToTokenStorage(self)
