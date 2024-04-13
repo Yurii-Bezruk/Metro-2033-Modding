@@ -70,7 +70,7 @@ end
 function setOwner(name, owner, onLoad)
     local available = true
     if not onLoad then
-        available = stationAvailable(stations[name], getSeatedPlayers())
+        available = stationAvailable(stations[name])
     end
     if available and (stations[name].type == StationType.NEUTRAL or stations[name].type == StationType.POLIS) then
         stations[name].owner = owner
@@ -91,12 +91,12 @@ function getOwnedStations(fraction)
     return ownedStations
 end
 
-function stationAvailable(station, activeZones)
+function stationAvailable(station)
     if not IGNORE_INACTIVE_ZONES then
         return true
     end
     return station.type == StationType.POLIS
-        or tableContains(activeZones, station.zone:toString())
+        or tableContains(getSeatedPlayers(), station.zone:toString())
 end
 
 -- ------------------------------------------------------------
@@ -108,7 +108,6 @@ function highlightPossibleAttacks(fraction)
     if #ownedStations == 0 then
         do return end
     end
-    local activeZones = getSeatedPlayers()
     local possibleAttacks = Set()    
     local activeHeroes = ADMIN_BOARD:getActiveHeroes()
     local occupiedStations = {}
@@ -140,12 +139,12 @@ function highlightPossibleAttacks(fraction)
 
     -- searching for all possible attacks from our stations
     for i, name in ipairs(ownedStations) do
-        possibleAttacks:putAll(findPossibleAttacks(name, activeZones, ownedStations))
+        possibleAttacks:putAll(findPossibleAttacks(name, ownedStations))
     end
 
     possibleAttacks:removeAll(ownedStations)
     possibleAttacks:putAll(occupiedStations)
-    if highlightLocomotive == true and stationAvailable(heroStation, activeZones) then
+    if highlightLocomotive == true and stationAvailable(heroStation) then
         possibleAttacks:put(heroStationName)    
     end
     for i, name in ipairs(possibleAttacks:getValues()) do
@@ -153,7 +152,7 @@ function highlightPossibleAttacks(fraction)
     end
 end
 
-function findPossibleAttacks(name, activeZones, ownedStationNames)
+function findPossibleAttacks(name, ownedStationNames)
     local speed = 1
     local set = Set()
     local q = Queue()
@@ -166,13 +165,13 @@ function findPossibleAttacks(name, activeZones, ownedStationNames)
     
         for neighbour_name, type in pairs(next.station.neighbours) do
             local neighbour = stations[neighbour_name]
-            if stationAvailable(neighbour, activeZones) and not set:contains(neighbour_name) then
+            if stationAvailable(neighbour) and not set:contains(neighbour_name) then
                 local nextSpeed = next.speed - 1
                 if nextSpeed >= 0 then
                     if neighbour.type == StationType.GANZA then
-                        putGanzaNeighbours(neighbour, nextSpeed, activeZones, q)
+                        putGanzaNeighbours(neighbour, nextSpeed, q)
                     elseif neighbour.type == StationType.POLIS then
-                        putPolisNeighbours(neighbour, neighbour_name, nextSpeed, activeZones, q)
+                        putPolisNeighbours(neighbour, neighbour_name, nextSpeed, q)
                     elseif neighbour.type == StationType.NEUTRAL then
                         q:put({station=neighbour, name=neighbour_name, speed=nextSpeed})
                     end
@@ -183,12 +182,12 @@ function findPossibleAttacks(name, activeZones, ownedStationNames)
     return set:getValues()
 end
 
-function putGanzaNeighbours(ganza, speed, activeZones, q)
+function putGanzaNeighbours(ganza, speed, q)
     for neighbour_name, type in pairs(ganza.neighbours) do
         if type == Neighbouring.TUNNEL then
             for travel_name, travel_type in pairs(stations[neighbour_name].neighbours) do 
                 if travel_type == Neighbouring.PASSAGE 
-                    and stationAvailable(stations[travel_name], activeZones)
+                    and stationAvailable(stations[travel_name])
                     and stations[travel_name].type != StationType.ABANDONED then
                     q:put({station=stations[travel_name], name=travel_name, speed=speed})                
                 end
@@ -197,7 +196,7 @@ function putGanzaNeighbours(ganza, speed, activeZones, q)
     end
 end
 
-function putPolisNeighbours(polis, name, speed, activeZones, q)
+function putPolisNeighbours(polis, name, speed, q)
     q:put({station=polis, name=name, speed=speed})
     if polis.owner != nil then
         do return end
@@ -206,11 +205,11 @@ function putPolisNeighbours(polis, name, speed, activeZones, q)
         if stations[neighbour_name].type == StationType.POLIS then
             q:put({station=stations[neighbour_name], name=neighbour_name, speed=speed})
             for travel_name, travel_type in pairs(stations[neighbour_name].neighbours) do 
-                if stationAvailable(stations[travel_name], activeZones) and stations[neighbour_name].owner == nil then
+                if stationAvailable(stations[travel_name]) and stations[neighbour_name].owner == nil then
                     q:put({station=stations[travel_name], name=travel_name, speed=speed})
                 end
             end
-        elseif stationAvailable(stations[neighbour_name], activeZones) then
+        elseif stationAvailable(stations[neighbour_name]) then
             q:put({station=stations[neighbour_name], name=neighbour_name, speed=speed})
         end
     end
@@ -225,9 +224,8 @@ function highlightPossibleMoves(position, speed, isAnna)
     if station == nil then
         do return end
     end
-    local activeZones = getSeatedPlayers()
-    if stationAvailable(station, activeZones) then 
-        local possibleMoves = findPossibleMoves(origin_name, speed, activeZones, isAnna)
+    if stationAvailable(station) then 
+        local possibleMoves = findPossibleMoves(origin_name, speed, isAnna)
         for _, station_name in ipairs(possibleMoves) do
             highlight(station_name)
         end
@@ -235,7 +233,7 @@ function highlightPossibleMoves(position, speed, isAnna)
     highlight(origin_name, Color.GREEN)
 end
 
-function findPossibleMoves(name, speed, activeZones, isAnna)
+function findPossibleMoves(name, speed, isAnna)
     local set = Set()
     local q = Queue()
     q:put({station=stations[name], name=name, speed=speed})
@@ -245,7 +243,7 @@ function findPossibleMoves(name, speed, activeZones, isAnna)
         set:put(next.name)
         for neighbour_name, type in pairs(next.station.neighbours) do
             local neighbour = stations[neighbour_name]
-            if stationAvailable(neighbour, activeZones) and not set:contains(neighbour_name) then
+            if stationAvailable(neighbour) and not set:contains(neighbour_name) then
                 if isAnna and type == Neighbouring.PASSAGE then
                     nextSpeed = next.speed
                 else
