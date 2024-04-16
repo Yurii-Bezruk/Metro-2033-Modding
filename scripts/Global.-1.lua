@@ -1,3 +1,10 @@
+
+
+-- If you reading this from the scripting window of Tabletop Simulator, then you will probably see a lot of 
+-- auto-generated code (pasted by VSCode plugin). You can check the actual source code on my GitHub repository
+-- https://github.com/Yurii-Bezruk/Metro-2033-Modding
+
+
 require("scripts.util.tables")
 
 -- Set to false during testing to make all stations available. 

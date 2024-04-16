@@ -343,13 +343,13 @@ heroes = {
         speed = 3,
         power = 3
     },
-    melnik = {
+    miller = {
         figure = getObjectFromGUID('3b7793'),
         card_guid = '88f769',
         speed = 3,
         power = 2
     },
-    han = {
+    khan = {
         figure = getObjectFromGUID('d6b5ec'),
         card_guid = '6eb1e5',
         speed = 3,
