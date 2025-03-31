@@ -1,7 +1,7 @@
-require("scripts.util.tables")
+require("scripts.collections.List")
 
 function zoneContain(zone, object)
-    return tableContains(zone.getObjects(), object)
+    return List(zone.getObjects()):contains(object)
 end
 
 function zoneDecksContain(zone, object)

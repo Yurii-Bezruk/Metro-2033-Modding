@@ -1,8 +1,8 @@
-require("scripts.util.tables")
 require("scripts.util.rounding")
 require("scripts.util.circle")
 require("scripts.util.Set")
 require("scripts.util.Queue")
+require("scripts.collections.List")
 
 IGNORE_INACTIVE_ZONES = Global.getVar('IGNORE_INACTIVE_ZONES')
 ADMIN_BOARD_GUID = Global.getVar('ADMIN_BOARD_GUID')
@@ -94,7 +94,7 @@ function stationAvailable(station)
         return true
     end
     return station.type == StationType.POLIS
-        or tableContains(getSeatedPlayers(), station.zone:toString())
+        or List(getSeatedPlayers()):contains(station.zone:toString())
 end
 
 -- ------------------------------------------------------------
@@ -124,8 +124,8 @@ function highlightPossibleAttacks(fraction)
             -- for other heroes
             local occupiedStationName, occupiedStation = findStationByPosition(hero.figure.getPosition())
             if occupiedStationName != nil then
-                -- adding to occupied stations if they standing on our station 
-                if tableContains(ownedStations, occupiedStationName) then
+                -- adding to occupied stations if they standing on our station
+                if List(ownedStations):contains(occupiedStationName) then
                     table.insert(occupiedStations, occupiedStationName)
                 -- adding to abandoned stations if they standing abandoned station
                 elseif occupiedStation.type == StationType.ABANDONED then
@@ -180,7 +180,7 @@ function findPossibleAttacks(name, ownedStations, occupiedAbandonedStations)
                         putPolisNeighbours(neighbour, neighbour_name, nextSpeed, q)
                     elseif neighbour.type == StationType.NEUTRAL then
                         q:put({station=neighbour, name=neighbour_name, speed=nextSpeed})
-                    elseif neighbour.type == StationType.ABANDONED and tableContains(occupiedAbandonedStations, neighbour_name) then
+                    elseif neighbour.type == StationType.ABANDONED and List(occupiedAbandonedStations):contains(neighbour_name) then
                         q:put({station=neighbour, name=neighbour_name, speed=nextSpeed})
                     end
                 end
@@ -198,7 +198,7 @@ function putGanzaNeighbours(ganza, speed, occupiedAbandonedStations, q)
                     and stationAvailable(stations[travel_name])
                     and (stations[travel_name].type != StationType.ABANDONED
                         or (stations[travel_name].type == StationType.ABANDONED 
-                            and tableContains(occupiedAbandonedStations, travel_name))) then
+                            and List(occupiedAbandonedStations):contains(travel_name))) then
                     q:put({station=stations[travel_name], name=travel_name, speed=speed})                
                 end
             end
