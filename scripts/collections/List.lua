@@ -1,11 +1,6 @@
 function List(input)
     assert(type(input) == 'table', "Attempt to create list from non-table value " .. tostring(input) .. ' <' .. type(input) ..'>')
 
-    local self = {}
-    for i, v in ipairs(input) do
-        self[i] = v
-    end
-
     local methods = {
         iterator = function(self)
             local i = 0;
@@ -95,6 +90,11 @@ function List(input)
             return string.sub(str, 1, string.len(str) - 2) .. ']'
         end
     }
+    
+    local self = {}
+    for i, v in ipairs(input) do
+        self[i] = v
+    end
 
     self = setmetatable(self, {
         __tostring = function(self)

@@ -1,13 +1,5 @@
-
 function Table(input)
     assert(type(input) == 'table', 'Attempt to create Table from non-table value ' .. tostring(input) .. ' <' .. type(input) ..'>')
-
-    local self = {} 
-    if input ~= nil then
-        for k, v in pairs(input) do
-            self[k] = v
-        end
-    end
 
     local methods = {
         size = function(self)
@@ -106,20 +98,21 @@ function Table(input)
             for k, v in pairs(self) do
                 action(k, v)
             end
-        end,
-        
-        toString = function(self)
+        end
+    }
+
+    local self = {}
+    for k, v in pairs(input) do
+        self[k] = v
+    end
+
+    self = setmetatable(self, {
+        __tostring = function(self)
             local str = '{'
             for k, v in pairs(self) do
                 str = str .. k .. '=' .. tostring(v) .. ', '
             end
             return string.sub(str, 1, string.len(str) - 2) .. '}'
-        end
-    }
-
-    self = setmetatable(self, {
-        __tostring = function(self)
-            return self:toString()
         end,
         __index = methods,
         __newindex = function (self, k, v)

@@ -36,7 +36,7 @@ function onLoad()
     -- ------------------------------------------------------------
     -- Importing functions end
     -- ------------------------------------------------------------
-    clearDeskExtensions()    
+    clearDeskExtensions()
     promotePlayers()
 end
 

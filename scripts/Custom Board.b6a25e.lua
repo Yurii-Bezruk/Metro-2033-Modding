@@ -1,7 +1,7 @@
 require("scripts.util.rounding")
 require("scripts.util.circle")
-require("scripts.util.Set")
-require("scripts.util.Queue")
+require("scripts.collections.Set")
+require("scripts.collections.Queue")
 require("scripts.collections.List")
 
 IGNORE_INACTIVE_ZONES = Global.getVar('IGNORE_INACTIVE_ZONES')
@@ -165,7 +165,7 @@ function findPossibleAttacks(name, ownedStations, occupiedAbandonedStations)
     set:putAll(ownedStations)
     q:put({station=stations[name], name=name, speed=speed})
     
-    while q.size > 0 do
+    while q:size() > 0 do
         local next = q:pop()
         set:put(next.name)
     
@@ -252,7 +252,7 @@ function findPossibleMoves(name, speed, isAnna)
     local q = Queue()
     q:put({station=stations[name], name=name, speed=speed})
     
-    while q.size > 0 do
+    while q:size() > 0 do
         local next = q:pop()
         set:put(next.name)
         for neighbour_name, type in pairs(next.station.neighbours) do
