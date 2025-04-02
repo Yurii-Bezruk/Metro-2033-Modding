@@ -1,4 +1,5 @@
 require("scripts.util.zones")
+require("scripts.collections.Table")
 
 local heroFigureScript = [[
     BOARD_GUID = Global.getVar('BOARD_GUID')
@@ -200,13 +201,7 @@ function findHeroByName(heroName)
 end
 
 function getActiveHeroes()
-    local activeHeroes = {}
-    for name, hero in pairs(heroes) do
-        if hero.fraction != nil then
-            activeHeroes[name] = hero
-        end
-    end
-    return activeHeroes
+    return heroes:filter(|name, hero| hero.fraction ~= nil)
 end
 
 function assignHero(heroCard)
@@ -324,7 +319,7 @@ HERO_FIGURES_ZONES_GUIDS = {'93c8a1', '49a450', '29f2ce', '2c6394', 'f666bc', '4
 HERO_CARD_START_ZONE = getObjectFromGUID('c5d6cc')
 DEFAULT_COLOR_TINT = Color(0, 0, 0, 255)
 
-heroes = {
+heroes = Table {
     hunter = {
         figure = getObjectFromGUID('742d9b'),
         card_guid = '4e1b3f',

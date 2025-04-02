@@ -1,3 +1,5 @@
+require("scripts.collections.List")
+
 function Table(input)
     assert(type(input) == 'table', 'Attempt to create Table from non-table value ' .. tostring(input) .. ' <' .. type(input) ..'>')
 
@@ -122,4 +124,15 @@ function Table(input)
     })
 
     return self
+end
+
+function deepCopy(input)
+    if type(input) ~= 'table' then
+        return input
+    end
+    local copy = {}
+    for k, v in pairs(input) do
+        copy[k] = deepCopy(v)
+    end
+    return copy
 end

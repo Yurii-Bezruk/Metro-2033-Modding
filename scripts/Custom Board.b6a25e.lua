@@ -1,8 +1,9 @@
 require("scripts.util.rounding")
 require("scripts.util.circle")
+require("scripts.collections.List")
+require("scripts.collections.Table")
 require("scripts.collections.Set")
 require("scripts.collections.Queue")
-require("scripts.collections.List")
 
 IGNORE_INACTIVE_ZONES = Global.getVar('IGNORE_INACTIVE_ZONES')
 ADMIN_BOARD_GUID = Global.getVar('ADMIN_BOARD_GUID')
@@ -15,7 +16,7 @@ function onLoad()
     ADMIN_BOARD = {
         obj = getObjectFromGUID(ADMIN_BOARD_GUID),
         getActiveHeroes = function(self)
-            return self.obj.call('getActiveHeroes')
+            return Table(deepCopy(self.obj.call('getActiveHeroes')))
         end,
         equipmentCount = function(self, hero_name, equip_name)
             return self.obj.call('equipmentCountExported', {hero_name=hero_name, equip_name=equip_name})
@@ -53,12 +54,9 @@ end
 -- ------------------------------------------------------------
 
 function findStationByPosition(position)
-    local position = roundVector(position, 2)
-    for name, station in pairs(stations) do
-        if station.position.x == position.x and station.position.z == position.z then
-            return name, station
-        end
-    end
+    local position = round(position, 2)
+    return stations:findFirstPair(|name, station|
+            station.position.x == position.x and station.position.z == position.z)
 end
 
 function findStationByName(name)
@@ -80,13 +78,7 @@ function removeOwner(name)
 end
 
 function getOwnedStations(fraction)
-    local ownedStations = {}
-    for name, station in pairs(stations) do
-        if station.owner == fraction then
-            table.insert(ownedStations, name)
-        end
-    end
-    return ownedStations
+    return stations:filter(|name, station| station.owner == fraction):keys()
 end
 
 function stationAvailable(station)
@@ -103,7 +95,7 @@ end
 
 function highlightPossibleAttacks(fraction)
     local ownedStations = getOwnedStations(fraction)
-    if #ownedStations == 0 then
+    if ownedStations:size() == 0 then
         do return end
     end
     local activeHeroes = ADMIN_BOARD:getActiveHeroes()
@@ -123,9 +115,9 @@ function highlightPossibleAttacks(fraction)
         else
             -- for other heroes
             local occupiedStationName, occupiedStation = findStationByPosition(hero.figure.getPosition())
-            if occupiedStationName != nil then
+            if occupiedStationName ~= nil then
                 -- adding to occupied stations if they standing on our station
-                if List(ownedStations):contains(occupiedStationName) then
+                if ownedStations:contains(occupiedStationName) then
                     table.insert(occupiedStations, occupiedStationName)
                 -- adding to abandoned stations if they standing abandoned station
                 elseif occupiedStation.type == StationType.ABANDONED then
@@ -138,12 +130,12 @@ function highlightPossibleAttacks(fraction)
     -- if hero has locomotive and stands on neutral station then we count that station as ours
     if heroStation != nil and heroStation.owner == nil
         and (heroStation.type == StationType.NEUTRAL or heroStation.type == StationType.POLIS) then
-            table.insert(ownedStations, heroStationName)
+            ownedStations:insert(heroStationName)
             highlightLocomotive = true
     end
 
     -- searching for all possible attacks from our stations
-    for i, name in ipairs(ownedStations) do
+    for name in ownedStations:iterator() do
         possibleAttacks:putAll(findPossibleAttacks(name, ownedStations, occupiedAbandonedStations))
     end
 
@@ -295,7 +287,7 @@ StationType = {
     ABANDONED = 'ABANDONED'
 }
 
-stations = {
+stations = Table {
     aeroport = {
         position = Vector(-9.13, 0.6, -8.30),
         zone = Color.ORANGE,
