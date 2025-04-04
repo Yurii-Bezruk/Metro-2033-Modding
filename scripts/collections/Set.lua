@@ -1,4 +1,8 @@
-function Set()
+require("scripts.collections.List")
+
+function Set(input)    
+    assert(type(input) == 'table', "Attempt to create set from non-table value " .. tostring(input) .. ' <' .. type(input) ..'>')
+
     local methods = {
         iterator = function(self)
             local keys = {}
@@ -51,16 +55,64 @@ function Set()
             return size
         end,
         
-        getValues = function (self)
-            local values = {}
+        filter = function(self, predicate)
+            local newSet = Set{}
             for value in self:iterator() do
-                table.insert(values, value)
+                if predicate(value) then
+                    newSet:put(value)
+                end
             end
-            return values
+            return newSet
+        end,
+
+        findFirst = function(self, predicate)
+            for value in self:iterator() do
+                if predicate(value) then
+                    return value
+                end
+            end
+        end,
+        
+        map = function(self, mapper)
+            local newSet = Set{}
+            for value in self:iterator() do
+                newSet:put(mapper(value))
+            end
+            return newSet
+        end,
+        
+        flatMap = function(self, mapper)
+            local newSet = Set{}
+            for value in self:iterator() do
+                local subset = mapper(value)
+                for elem in subset:iterator() do 
+                    newSet:put(elem)
+                end
+            end
+            return newSet
+        end,
+
+        forEach = function(self, action)
+            for value in self:iterator() do
+                action(value)
+            end
+        end,
+
+        toList = function (self)
+            local list = List{}
+            for value in self:iterator() do
+                list:insert(value)
+            end
+            return list
         end
     }
 
-    local self = setmetatable({}, {
+    local self = {}
+    for i, v in ipairs(input) do
+        self[v] = true
+    end
+
+    self = setmetatable(self, {
         __tostring = function(self)
             local str = 'Set['
             for elem in self:iterator() do

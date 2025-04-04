@@ -44,7 +44,7 @@ local heroFigureScript = [[
 
     function canHighlight()
         local highlightedBy = BOARD.obj.getVar('HIGHLIGHTED_BY')
-        if highlightedBy != nil and highlightedBy != NAME then
+        if highlightedBy ~= nil and highlightedBy ~= NAME then
             return false
         end
         return true
@@ -70,9 +70,7 @@ local heroCardScript = [[
     end
     
     function onDrop(player_color)
-        Wait.time(function () 
-            ADMIN_BOARD:assignHero(self)
-        end, 0.5)
+        Wait.time(|| ADMIN_BOARD:assignHero(self), 0.5)
     end
 ]]
 
@@ -111,7 +109,7 @@ local fractionBoardScript = [[
 
     function canHighlight()
         local highlightedBy = BOARD.obj.getVar('HIGHLIGHTED_BY')
-        if highlightedBy != nil and highlightedBy != FRACTION then
+        if highlightedBy ~= nil and highlightedBy ~= FRACTION then
             return false
         end
         return true
@@ -176,28 +174,9 @@ end
 -- ------------------------------------------------------------
 
 function findHeroByCard(heroCard)
-    for name, hero in pairs(heroes) do
-        if hero.card_guid == heroCard.guid then
-            hero.card = getObjectFromGUID(hero.card_guid)
-            return name, hero
-        end
-    end
-end
-
-function findHeroByFigure(heroFigure)
-    for name, hero in pairs(heroes) do
-        if hero.figure.guid == heroFigure.guid then
-            return name, hero
-        end
-    end
-end
-
-function findHeroByName(heroName)
-    for name, hero in pairs(heroes) do
-        if name == heroName then
-            return hero
-        end
-    end
+    local name, hero = heroes:findFirstPair(|name, hero| hero.card_guid == heroCard.guid)    
+    hero.card = getObjectFromGUID(hero.card_guid)
+    return name, hero
 end
 
 function getActiveHeroes()
@@ -209,14 +188,14 @@ function assignHero(heroCard)
     if not zoneContain(HERO_FIGURE_START_ZONE, hero.figure) then
         do return end
     end
-    for name, fraction in pairs(fractions) do
-        if zoneContain(fraction.hero_card_zone, hero.card) then
+
+    fractions:filter(|name, fraction| zoneContain(fraction.hero_card_zone, hero.card))
+        :forEach(function(name, fraction) 
             hero.figure.setPositionSmooth(fraction.hero_figure_zone.getPosition(), false, false)
             hero.figure.setRotationSmooth(fraction.rotation, false, false)
             hero.figure.setColorTint(fraction.hero_color_tint)
             hero.fraction = name
-        end
-    end
+        end)
 end
 
 function deassignHero(heroCard, delay)
@@ -239,7 +218,7 @@ function deassignHero(heroCard, delay)
 end
 
 function getHeroSpeed(heroFigure)
-    local name, hero = findHeroByFigure(heroFigure)
+    local name, hero = heroes:findFirstPair(|name, hero| hero.figure.guid == heroFigure.guid)
     local speed = hero.speed
     speed = speed + equipmentCount(name, 'locomotive')
     speed = speed - equipmentCount(name, 'rpk')
@@ -248,32 +227,15 @@ end
 
 function getEquipment(hero)
     if hero.fraction == nil then
-        return {}
+        return List{}
     end
-    return fractions[hero.fraction].equipment_zone.getObjects()
+    return List(fractions[hero.fraction].equipment_zone.getObjects())
 end
 
 function equipmentCount(hero_name, equip_name)
-    local amount = 0
-    local hero = findHeroByName(hero_name)
-    for _, card in ipairs(getEquipment(hero)) do
-        if card.guid == equipment[equip_name][1] or card.guid == equipment[equip_name][2] then
-            amount = amount + 1
-        end
-    end
-    return amount
-end
-
--- ------------------------------------------------------------
--- Fraction functions
--- ------------------------------------------------------------
-
-function findFractionByColor(color)
-    for name, fraction in pairs(fractions) do
-        if fraction.color == color then
-            return name, fraction
-        end
-    end
+    return getEquipment(heroes[hero_name])
+        :filter(|card| equipment[equip_name]:contains(card.guid))
+        :size()
 end
 
 -- ------------------------------------------------------------
@@ -281,7 +243,7 @@ end
 -- ------------------------------------------------------------
 
 function onObjectDrop(player_color, object)
-    if object.type != 'Deck' then
+    if object.type ~= 'Deck' then
         if zoneContain(HERO_CARD_START_ZONE, object) then
             deassignHero(object, 0.85)
         end
@@ -358,7 +320,7 @@ heroes = Table {
     }
 }
 
-fractions = {
+fractions = Table {
     reich = {
         board = getObjectFromGUID('748f36'),
         color = Color.GREEN,
@@ -416,15 +378,15 @@ fractions = {
 }
 
 equipment = {
-    akm = {'6c763b', '3c5c36'},
-    shotgun = {'48d664', '2fd936'},
-    geiger = {'08fd93', '120ff8'},
-    svd = {'f71050', '7c51de'},
-    rpk = {'d74fbd', '786e02'},
-    locomotive = {'bdde07', '0dd68b'},
-    flag = {'0fbe3a', 'fba4fe'},
-    grenade = {'bd026e', 'fd2f18'},
-    dynamite = {'2bf6cc', '6d6817'}
+    akm = List{'6c763b', '3c5c36'},
+    shotgun = List{'48d664', '2fd936'},
+    geiger = List{'08fd93', '120ff8'},
+    svd = List{'f71050', '7c51de'},
+    rpk = List{'d74fbd', '786e02'},
+    locomotive = List{'bdde07', '0dd68b'},
+    flag = List{'0fbe3a', 'fba4fe'},
+    grenade = List{'bd026e', 'fd2f18'},
+    dynamite = List{'2bf6cc', '6d6817'}
 }
 
 -- ------------------------------------------------------------
@@ -433,9 +395,4 @@ equipment = {
 
 function equipmentCountExported(args)
     return equipmentCount(args.hero_name, args.equip_name)
-end
-
-function findFractionByColorExported(color)
-    local name, fraction = findFractionByColor(color)
-    return {name=name, fraction=fraction}
 end

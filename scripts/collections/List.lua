@@ -80,14 +80,6 @@ function List(input)
             for value in self:iterator() do
                 action(value)
             end
-        end,
-
-        toString = function(self)
-            local str = '['
-            for value in self:iterator() do
-                str = str .. tostring(value) .. ', '
-            end
-            return string.sub(str, 1, string.len(str) - 2) .. ']'
         end
     }
     
@@ -97,8 +89,12 @@ function List(input)
     end
 
     self = setmetatable(self, {
-        __tostring = function(self)
-            return self:toString()
+        __tostring = function(self)            
+            local str = '['
+            for value in self:iterator() do
+                str = str .. tostring(value) .. ', '
+            end
+            return string.sub(str, 1, string.len(str) - 2) .. ']'
         end,
         __index = methods,
         __newindex = function (self, k, v)

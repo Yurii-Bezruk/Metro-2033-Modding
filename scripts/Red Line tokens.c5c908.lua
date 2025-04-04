@@ -43,7 +43,7 @@ local fractionTokenScript = [[
     end
 
     function loadScriptState(script_state)
-        if script_state != nil and script_state != '' then
+        if script_state ~= nil and script_state ~= '' then
             script_state = JSON.decode(script_state)
             FRACTION = script_state.fraction
             STATION = script_state.station
@@ -89,9 +89,7 @@ local fractionTokenScript = [[
         if not CHANGED_STATE then
             tryRemoveOwner()
         end
-        Wait.time(function () 
-            ROOT_BAG:removeFromTokenStorage(self.guid)
-        end, 1)
+        Wait.time(|| ROOT_BAG:removeFromTokenStorage(self.guid), 1)
     end
 
     function onStateChange(old_state_guid)
@@ -102,7 +100,7 @@ local fractionTokenScript = [[
     end
     
     function tryRemoveOwner()
-        if STATION != nil then
+        if STATION ~= nil then
             BOARD:removeOwner(STATION)
         end
     end
