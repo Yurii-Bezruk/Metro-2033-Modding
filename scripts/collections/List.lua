@@ -56,6 +56,19 @@ function List(input)
                 end
             end
         end,
+
+        anyMatch = function(self, predicate)
+            return self:findFirst(predicate) ~= nil
+        end,
+
+        allMatch = function(self, predicate)
+            for value in self:iterator() do
+                if not predicate(value) then
+                    return false
+                end
+            end
+            return true
+        end,
         
         map = function(self, mapper)
             local newList = List{}
@@ -80,6 +93,7 @@ function List(input)
             for value in self:iterator() do
                 action(value)
             end
+            return self
         end
     }
     
@@ -90,11 +104,11 @@ function List(input)
 
     self = setmetatable(self, {
         __tostring = function(self)            
-            local str = '['
+            local str = '('
             for value in self:iterator() do
                 str = str .. tostring(value) .. ', '
             end
-            return string.sub(str, 1, string.len(str) - 2) .. ']'
+            return string.sub(str, 1, string.len(str) - 2) .. ')'
         end,
         __index = methods,
         __newindex = function (self, k, v)

@@ -1,16 +1,17 @@
-require("scripts.util.zones")
+require("scripts.collections.List")
 require("scripts.collections.Table")
+require("scripts.objects.Zone")
 
 local heroFigureScript = [[
-    BOARD_GUID = Global.getVar('BOARD_GUID')
+    GAME_BOARD_GUID = Global.getVar('GAME_BOARD_GUID')
     ADMIN_BOARD_GUID = Global.getVar('ADMIN_BOARD_GUID')
     
     function onLoad()
         -- ------------------------------------------------------------
         -- Importing functions
         -- ------------------------------------------------------------
-        BOARD = {
-            obj = getObjectFromGUID(BOARD_GUID),
+        GAME_BOARD = {
+            obj = getObjectFromGUID(GAME_BOARD_GUID),
             highlightPossibleMoves = function(self, position, speed, heroName)
                 self.obj.call('highlightPossibleMovesExported', {position=position, speed=speed, heroName=heroName})
             end,
@@ -31,19 +32,19 @@ local heroFigureScript = [[
     
     function onDrop(player_color)
         if canHighlight() then
-            BOARD:clearAllHighlights()
+            GAME_BOARD:clearAllHighlights()
         end
     end
 
     function onPickUp(player_color)
         if canHighlight() then
             local speed = ADMIN_BOARD:getHeroSpeed(self)
-            BOARD:highlightPossibleMoves(self.getPosition(), speed, NAME)
+            GAME_BOARD:highlightPossibleMoves(self.getPosition(), speed, NAME)
         end
     end
 
     function canHighlight()
-        local highlightedBy = BOARD.obj.getVar('HIGHLIGHTED_BY')
+        local highlightedBy = GAME_BOARD.obj.getVar('HIGHLIGHTED_BY')
         if highlightedBy ~= nil and highlightedBy ~= NAME then
             return false
         end
@@ -75,17 +76,17 @@ local heroCardScript = [[
 ]]
 
 local fractionBoardScript = [[
-    BOARD_GUID = Global.getVar('BOARD_GUID')
+    GAME_BOARD_GUID = Global.getVar('GAME_BOARD_GUID')
     active = false
 
     function onLoad()
         -- ------------------------------------------------------------
         -- Importing functions
         -- ------------------------------------------------------------
-        BOARD = {
-            obj = getObjectFromGUID(BOARD_GUID),
-            highlightPossibleAttacks = function(self, fraction)
-                self.obj.call('highlightPossibleAttacksExported', {fraction=fraction})
+        GAME_BOARD = {
+            obj = getObjectFromGUID(GAME_BOARD_GUID),
+            highlightPossibleAttacks = function(self, faction)
+                self.obj.call('highlightPossibleAttacksExported', {faction=faction})
             end,
             clearAllHighlights = function(self)
                 self.obj.call('clearAllHighlights')
@@ -100,16 +101,16 @@ local fractionBoardScript = [[
         if canHighlight() then
             active = not active
             if active then
-                BOARD:highlightPossibleAttacks(FRACTION)
+                GAME_BOARD:highlightPossibleAttacks(FACTION)
             else    
-                BOARD:clearAllHighlights()
+                GAME_BOARD:clearAllHighlights()
             end
         end
     end
 
     function canHighlight()
-        local highlightedBy = BOARD.obj.getVar('HIGHLIGHTED_BY')
-        if highlightedBy ~= nil and highlightedBy ~= FRACTION then
+        local highlightedBy = GAME_BOARD.obj.getVar('HIGHLIGHTED_BY')
+        if highlightedBy ~= nil and highlightedBy ~= FACTION then
             return false
         end
         return true
@@ -121,21 +122,21 @@ function onLoad(script_state)
         hero.figure.setLuaScript(heroFigureScript)
         hero.figure.setVar('NAME', name)
         hero.card = getObjectFromGUID(hero.card_guid)
-        if hero.card != nil then
+        if hero.card ~= nil then
             hero.card.setLuaScript(heroCardScript)
         end
     end
 
-    for name, fraction in pairs(fractions) do
-        fraction.board.UI.setXml(generateButton(fraction))
-        fraction.board.setLuaScript(fractionBoardScript)
-        fraction.board.setVar('FRACTION', name)
+    for name, faction in pairs(factions) do
+        faction.board.UI.setXml(generateButton(faction))
+        faction.board.setLuaScript(fractionBoardScript)
+        faction.board.setVar('FACTION', name)
     end
     
     loadScriptState(script_state)
 end
 
-function generateButton(fraction)
+function generateButton(faction)
     return [[
         <button onClick = "buttonClicked" 
             position = "0 -1070 -60" 
@@ -143,7 +144,7 @@ function generateButton(fraction)
             width = "300" 
             height = "190" 
             fontSize = "60" 
-            color = "]]..fraction.color:toString()..[["
+            color = "]]..faction.color:toString()..[["
             outline = "black"
             outlineSize = "5"
         >Attack</button>
@@ -151,10 +152,10 @@ function generateButton(fraction)
 end
 
 function loadScriptState(script_state)
-    if script_state != nil and script_state != '' then
+    if script_state ~= nil and script_state ~= '' then
         script_state = JSON.decode(script_state)
         for name, saved_hero in pairs(script_state) do
-            heroes[name].fraction = saved_hero.fraction
+            heroes[name].faction = saved_hero.faction
         end
     end
 end
@@ -162,8 +163,8 @@ end
 function onSave()
     local hero_save_data = {}
     for name, hero in pairs(heroes) do
-        if hero.fraction != nil then
-            hero_save_data[name] = {fraction = hero.fraction}
+        if hero.faction ~= nil then
+            hero_save_data[name] = {faction = hero.faction}
         end
     end
     return JSON.encode(hero_save_data)
@@ -180,21 +181,21 @@ function findHeroByCard(heroCard)
 end
 
 function getActiveHeroes()
-    return heroes:filter(|name, hero| hero.fraction ~= nil)
+    return heroes:filter(|name, hero| hero.faction ~= nil)
 end
 
 function assignHero(heroCard)
     local hero_name, hero = findHeroByCard(heroCard)
-    if not zoneContain(HERO_FIGURE_START_ZONE, hero.figure) then
+    if not HERO_FIGURE_START_ZONE.contains(hero.figure) then
         do return end
     end
 
-    fractions:filter(|name, fraction| zoneContain(fraction.hero_card_zone, hero.card))
-        :forEach(function(name, fraction) 
-            hero.figure.setPositionSmooth(fraction.hero_figure_zone.getPosition(), false, false)
-            hero.figure.setRotationSmooth(fraction.rotation, false, false)
-            hero.figure.setColorTint(fraction.hero_color_tint)
-            hero.fraction = name
+    factions:filter(|name, faction| faction.hero_card_zone.contains(hero.card))
+        :forEach(function(name, faction) 
+            hero.figure.setPositionSmooth(faction.hero_figure_zone.getPosition(), false, false)
+            hero.figure.setRotationSmooth(faction.rotation, false, false)
+            hero.figure.setColorTint(faction.hero_color_tint)
+            hero.faction = name
         end)
 end
 
@@ -204,16 +205,12 @@ function deassignHero(heroCard, delay)
         do return end
     end
     hero.figure.setColorTint(DEFAULT_COLOR_TINT)
-    hero.fraction = nil
+    hero.faction = nil
 
     Wait.time(function ()
-        for i, guid in ipairs(HERO_FIGURES_ZONES_GUIDS) do
-            local zone = getObjectFromGUID(guid)
-            if #zone.getObjects() == 0 then
-                hero.figure.setPositionSmooth(zone.getPosition(), false, false)
-                hero.figure.setRotationSmooth(Vector(0, 270, 0), false, false)
-            end
-        end
+        local zone = HERO_FIGURES_ZONES:findFirst(|zone| zone.isEmpty())        
+        hero.figure.setPositionSmooth(zone.getPosition(), false, false)
+        hero.figure.setRotationSmooth(Vector(0, 270, 0), false, false)
     end, delay)
 end
 
@@ -226,10 +223,10 @@ function getHeroSpeed(heroFigure)
 end
 
 function getEquipment(hero)
-    if hero.fraction == nil then
+    if hero.faction == nil then
         return List{}
     end
-    return List(fractions[hero.fraction].equipment_zone.getObjects())
+    return factions[hero.faction].equipment_zone.getObjects()
 end
 
 function equipmentCount(hero_name, equip_name)
@@ -244,12 +241,12 @@ end
 
 function onObjectDrop(player_color, object)
     if object.type ~= 'Deck' then
-        if zoneContain(HERO_CARD_START_ZONE, object) then
+        if HERO_CARD_START_ZONE.contains(object) then
             deassignHero(object, 0.85)
         end
     else
         -- if hero deck dropped to empty zone
-        if zoneContain(HERO_CARD_START_ZONE, object) then
+        if HERO_CARD_START_ZONE.contains(object) then
             for i, heroCard in ipairs(object.getObjects()) do
                 deassignHero(heroCard, i * 0.85)
             end
@@ -257,9 +254,11 @@ function onObjectDrop(player_color, object)
         end
         -- if one part of deck dropped onto another part in the zone
         for i, heroCard in ipairs(object.getObjects()) do
-            if zoneDecksContain(HERO_CARD_START_ZONE, heroCard) then
+            if HERO_CARD_START_ZONE.getObjects()
+                    :filter(|obj| obj.type == 'Deck')
+                    :anyMatch(|deck| deck.contains(heroCard)) then
                 deassignHero(heroCard, i * 0.85)
-            end
+            end            
         end
         -- otherwise invalid input, return
     end
@@ -267,7 +266,7 @@ end
 
 
 function onObjectLeaveContainer(container, object)
-    if zoneContain(HERO_CARD_START_ZONE, container) then
+    if HERO_CARD_START_ZONE.contains(container) then
         object.setLuaScript(heroCardScript)
     end
 end
@@ -276,9 +275,9 @@ end
 -- Game data
 -- ------------------------------------------------------------
 
-HERO_FIGURE_START_ZONE = getObjectFromGUID('9e4aaf')
-HERO_FIGURES_ZONES_GUIDS = {'93c8a1', '49a450', '29f2ce', '2c6394', 'f666bc', '41749f'}
-HERO_CARD_START_ZONE = getObjectFromGUID('c5d6cc')
+HERO_FIGURE_START_ZONE = Zone('9e4aaf')
+HERO_FIGURES_ZONES = List{Zone('93c8a1'), Zone('49a450'), Zone('29f2ce'), Zone('2c6394'), Zone('f666bc'), Zone('41749f')}
+HERO_CARD_START_ZONE = Zone('c5d6cc')
 DEFAULT_COLOR_TINT = Color(0, 0, 0, 255)
 
 heroes = Table {
@@ -320,60 +319,60 @@ heroes = Table {
     }
 }
 
-fractions = Table {
+factions = Table {
     reich = {
         board = getObjectFromGUID('748f36'),
         color = Color.GREEN,
-        hero_card_zone = getObjectFromGUID('4b7954'),
-        hero_figure_zone = getObjectFromGUID('e63318'),
+        hero_card_zone = Zone('4b7954'),
+        hero_figure_zone = Zone('e63318'),
         hero_color_tint = Color(23 / 255, 208 / 255, 0, 200 / 255),
         rotation = Vector(0, 360, 0),
-        equipment_zone = getObjectFromGUID('14224d')
+        equipment_zone = Zone('14224d')
     },
     red_line = {
         board = getObjectFromGUID('f12a81'),
         color = Color.RED,
-        hero_card_zone = getObjectFromGUID('6bad7e'),
-        hero_figure_zone = getObjectFromGUID('496490'),
+        hero_card_zone = Zone('6bad7e'),
+        hero_figure_zone = Zone('496490'),
         hero_color_tint = Color(238 / 255, 0, 0, 200 / 255),
         rotation = Vector(0, 360, 0),
-        equipment_zone = getObjectFromGUID('3f41e8')
+        equipment_zone = Zone('3f41e8')
     },
     bauman = {
         board = getObjectFromGUID('dcc720'),
         color = Color.BROWN,
-        hero_card_zone = getObjectFromGUID('038386'),
-        hero_figure_zone = getObjectFromGUID('9bc8be'),
+        hero_card_zone = Zone('038386'),
+        hero_figure_zone = Zone('9bc8be'),
         hero_color_tint = Color(181 / 255, 79 / 255, 0, 200 / 255),
         rotation = Vector(0, 90, 0),
-        equipment_zone = getObjectFromGUID('e2760f')
+        equipment_zone = Zone('e2760f')
     },
     bandits = {
         board = getObjectFromGUID('e88538'),
         color = Color.YELLOW,
-        hero_card_zone = getObjectFromGUID('7f3bc1'),
-        hero_figure_zone = getObjectFromGUID('b0bfff'),
+        hero_card_zone = Zone('7f3bc1'),
+        hero_figure_zone = Zone('b0bfff'),
         hero_color_tint = Color(246 / 255, 255 / 255, 0, 200 / 255),
         rotation = Vector(0, 90, 0),
-        equipment_zone = getObjectFromGUID('ed5942')
+        equipment_zone = Zone('ed5942')
     },
     arbats = {
         board = getObjectFromGUID('0cadd1'),
         color = Color.BLUE,
-        hero_card_zone = getObjectFromGUID('97d671'),
-        hero_figure_zone = getObjectFromGUID('b12e2a'),
+        hero_card_zone = Zone('97d671'),
+        hero_figure_zone = Zone('b12e2a'),
         hero_color_tint = Color(70 / 255, 0, 255 / 255, 200 / 255),
         rotation = Vector(0, 180, 0),
-        equipment_zone = getObjectFromGUID('c6be1a')
+        equipment_zone = Zone('c6be1a')
     },
     confederation = {
         board = getObjectFromGUID('2095e4'),
         color = Color.ORANGE,
-        hero_card_zone = getObjectFromGUID('a4ca9c'),
-        hero_figure_zone = getObjectFromGUID('0b8381'),
+        hero_card_zone = Zone('a4ca9c'),
+        hero_figure_zone = Zone('0b8381'),
         hero_color_tint = Color(255 / 255, 147 / 255, 0, 200 / 255),
         rotation = Vector(0, 180, 0),
-        equipment_zone = getObjectFromGUID('6c3520')
+        equipment_zone = Zone('6c3520')
     }
 }
 

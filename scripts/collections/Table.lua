@@ -75,6 +75,19 @@ function Table(input)
                 end
             end
         end,
+
+        anyMatch = function(self, predicate)
+            return self:findFirstPair(predicate) ~= nil
+        end,
+
+        allMatch = function(self, predicate)
+            for k, v in pairs(self) do
+                if not predicate(k, v) then
+                    return false
+                end
+            end
+            return true
+        end,
         
         map = function(self, mapper)
             local newTable = Table{}
@@ -100,6 +113,7 @@ function Table(input)
             for k, v in pairs(self) do
                 action(k, v)
             end
+            return self
         end
     }
 

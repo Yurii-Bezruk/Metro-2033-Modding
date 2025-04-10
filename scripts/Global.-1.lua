@@ -7,7 +7,7 @@
 
 -- Set to false during testing to make all stations available. 
 -- Value of true allows to move only to seated players' zones
-IGNORE_INACTIVE_ZONES = false
+IGNORE_INACTIVE_ZONES = true
 
 ROOT_BAG_GUID = 'c5c908'
 BOARD_GUID = 'b6a25e'
@@ -18,7 +18,7 @@ Tag = {
     BULLET = 'BULLET',
     PORK = 'PORK',
     MUSHROOM = 'MUSHROOM',
-    FRACTION_TOKEN = 'FRACTION_TOKEN'
+    FACTION_TOKEN = 'FACTION_TOKEN'
 }
 
 function onLoad()

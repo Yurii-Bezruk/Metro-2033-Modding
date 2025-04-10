@@ -72,6 +72,19 @@ function Set(input)
                 end
             end
         end,
+
+        anyMatch = function(self, predicate)
+            return self:findFirst(predicate) ~= nil
+        end,
+
+        allMatch = function(self, predicate)
+            for value in self:iterator() do
+                if not predicate(value) then
+                    return false
+                end
+            end
+            return true
+        end,
         
         map = function(self, mapper)
             local newSet = Set{}
@@ -96,6 +109,7 @@ function Set(input)
             for value in self:iterator() do
                 action(value)
             end
+            return self
         end,
 
         toList = function (self)

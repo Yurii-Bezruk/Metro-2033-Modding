@@ -1,5 +1,7 @@
-local fractionTokenScript = [[
-    BOARD_GUID = Global.getVar('BOARD_GUID')
+require("scripts.collections.Table")
+
+local factionTokenScript = [[
+    GAME_BOARD_GUID = Global.getVar('GAME_BOARD_GUID')
     ROOT_BAG_GUID = Global.getVar('ROOT_BAG_GUID')
     CHANGED_STATE = false
     
@@ -7,8 +9,8 @@ local fractionTokenScript = [[
         -- ------------------------------------------------------------
         -- Importing functions
         -- ------------------------------------------------------------
-        BOARD = {
-            obj = getObjectFromGUID(BOARD_GUID),
+        GAME_BOARD = {
+            obj = getObjectFromGUID(GAME_BOARD_GUID),
             findStationByPosition = function(self, position)
                 res = self.obj.call('findStationByPositionExported', position)
                 return res.name, res.station
@@ -32,20 +34,22 @@ local fractionTokenScript = [[
                 self.obj.call('removeFromTokenStorageExported', {guid=guid})
             end
         }
-        Production = BOARD.obj.getTable('Production')
+        Production = GAME_BOARD.obj.getTable('Production')
         Tag = Global.getTable('Tag')
         -- ------------------------------------------------------------
         -- Importing functions end
         -- ------------------------------------------------------------
         
-        self.addTag(Tag.FRACTION_TOKEN)
+        self.addTag(Tag.FACTION_TOKEN)
         loadScriptState(script_state)
     end
 
     function loadScriptState(script_state)
         if script_state ~= nil and script_state ~= '' then
             script_state = JSON.decode(script_state)
-            FRACTION = script_state.fraction
+            if script_state.faction ~= nil then
+                FACTION = script_state.faction
+            end
             STATION = script_state.station
             occupyStation(true)
         end
@@ -53,7 +57,7 @@ local fractionTokenScript = [[
 
     function onSave()
         return JSON.encode({
-            fraction = FRACTION,
+            faction = FACTION,
             station = STATION
         })
     end
@@ -63,13 +67,13 @@ local fractionTokenScript = [[
     end
 
     function occupyStation(onLoad)
-        local station_name, station = BOARD:findStationByPosition(self.getPosition())
+        local station_name, station = GAME_BOARD:findStationByPosition(self.getPosition())
         if station == nil then
             state = Production.GENERIC
             STATION = nil
         else
             state = station.production
-            BOARD:setOwner(station_name, FRACTION, onLoad)
+            GAME_BOARD:setOwner(station_name, FACTION, onLoad)
             STATION = station_name
         end
         ROOT_BAG:putToTokenStorage(self)
@@ -79,6 +83,7 @@ local fractionTokenScript = [[
         CHANGED_STATE = true
         local newState = self.setState(state)
         newState.setLuaScript(self.getLuaScript())
+        newState.setVar('FACTION', FACTION)
     end
 
     function onPickUp(player_color)
@@ -94,19 +99,19 @@ local fractionTokenScript = [[
 
     function onStateChange(old_state_guid)
         local oldToken = ROOT_BAG:getFromTokenStorage(old_state_guid)
-        FRACTION = oldToken.fraction
+        FACTION = oldToken.faction
         STATION = oldToken.station
         ROOT_BAG:putToTokenStorage(self)
     end
     
     function tryRemoveOwner()
         if STATION ~= nil then
-            BOARD:removeOwner(STATION)
+            GAME_BOARD:removeOwner(STATION)
         end
     end
 ]]
 
-FRACTION_TOKEN_BAG_GUIDS = {
+FACTION_TOKEN_BAG_GUIDS = Table {
     reich = '6e9e5a',
     red_line = 'c5c908',
     bauman = 'e855f1',
@@ -116,12 +121,11 @@ FRACTION_TOKEN_BAG_GUIDS = {
 }
 
 function onObjectLeaveContainer(container, object)
-    for name, guid in pairs(FRACTION_TOKEN_BAG_GUIDS) do
-        if guid == container.guid then
-            object.setLuaScript(fractionTokenScript)
-            object.setVar('FRACTION', name)
-        end
-    end
+    FACTION_TOKEN_BAG_GUIDS
+        :filter(|name, guid| guid == container.guid)
+        :keys()
+        :forEach(|name| object.setLuaScript(factionTokenScript))
+        :forEach(|name| object.setVar('FACTION', name))
 end
 
 -- ------------------------------------------------------------
@@ -132,7 +136,7 @@ TOKEN_STORAGE = {}
 
 function putToTokenStorage(object)
     TOKEN_STORAGE[object.guid] = {
-        fraction = object.getVar('FRACTION'),
+        faction = object.getVar('FACTION'),
         station = object.getVar('STATION')
     }
 end

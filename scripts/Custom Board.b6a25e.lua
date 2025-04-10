@@ -77,8 +77,8 @@ function removeOwner(name)
     stations[name].owner = nil
 end
 
-function getOwnedStations(fraction)
-    return stations:filter(|name, station| station.owner == fraction):keys()
+function getOwnedStations(faction)
+    return stations:filter(|name, station| station.owner == faction):keys()
 end
 
 function stationAvailable(station)
@@ -93,8 +93,8 @@ end
 -- Attacks highlightion for army
 -- ------------------------------------------------------------
 
-function highlightPossibleAttacks(fraction)
-    local ownedStations = getOwnedStations(fraction)
+function highlightPossibleAttacks(faction)
+    local ownedStations = getOwnedStations(faction)
     if ownedStations:size() == 0 then
         do return end
     end
@@ -106,7 +106,7 @@ function highlightPossibleAttacks(fraction)
     local heroStationName, heroStation = nil, nil
 
     for heroName, hero in pairs(activeHeroes) do
-        if hero.fraction == fraction then
+        if hero.faction == faction then
             -- saving station where our hero stands if he has locomotive
             if ADMIN_BOARD:equipmentCount(heroName, 'locomotive') > 0 then
                 heroStationName, heroStation = findStationByPosition(hero.figure.getPosition())
@@ -144,7 +144,7 @@ function highlightPossibleAttacks(fraction)
         possibleAttacks:put(heroStationName)    
     end
     possibleAttacks:forEach(highlight)
-    HIGHLIGHTED_BY = fraction
+    HIGHLIGHTED_BY = faction
 end
 
 function findPossibleAttacks(name, ownedStations, occupiedAbandonedStations)
@@ -1131,7 +1131,7 @@ stations = Table {
 -- ------------------------------------------------------------
 
 function findStationByPositionExported(position)
-    name, station = findStationByPosition(position)
+    local name, station = findStationByPosition(position)
     return {name = name, station = station}
 end
 
@@ -1152,5 +1152,5 @@ function highlightPossibleMovesExported(args)
 end
 
 function highlightPossibleAttacksExported(args)
-    return highlightPossibleAttacks(args.fraction)
+    return highlightPossibleAttacks(args.faction)
 end
