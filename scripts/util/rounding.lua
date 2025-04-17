@@ -1,4 +1,3 @@
-
 function round(x, scale)
     assert(type(x) == 'number' or type(x) == 'table', "Attempt to round value " .. tostring(x) .. ' with invalid type <' .. type(x) ..'>')
     

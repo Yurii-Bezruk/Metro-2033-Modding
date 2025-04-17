@@ -1,6 +1,7 @@
+require("scripts.collections.List")
 
 function clearCircle(object)
-    object.setVectorLines({})
+    object.setVectorLines{}
 end
 
 function drawCircle(object, circle)
@@ -18,13 +19,13 @@ end
 function getCircleVectorPoints(radius, position)
     local steps = 32
     local d = 360 / steps
-    local vectorPoints = {}
+    local vectorPoints = List{}
     for i = 0, steps do
-        table.insert(vectorPoints, {
+        vectorPoints:insert{
             position.x + (math.cos(math.rad(d * i)) * radius),
             position.y,
             position.z + (math.sin(math.rad(d * i)) * radius)
-        })
+        }
     end
     return vectorPoints
 end
