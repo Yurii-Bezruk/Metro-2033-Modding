@@ -7,7 +7,7 @@
 
 -- Set to false during testing to make all stations available. 
 -- Value of true allows to move only to seated players' zones
-IGNORE_INACTIVE_ZONES = true
+IGNORE_INACTIVE_ZONES = false
 
 ROOT_BAG_GUID = 'c5c908'
 GAME_BOARD_GUID = 'b6a25e'

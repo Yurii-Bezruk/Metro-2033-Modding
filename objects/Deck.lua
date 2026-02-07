@@ -1,4 +1,4 @@
-require("scripts.collections.List")
+require 'collections.List'
 
 function Deck(guid)
     local deck = getObjectFromGUID(guid)

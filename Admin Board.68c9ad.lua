@@ -1,6 +1,6 @@
-require("scripts.collections.List")
-require("scripts.collections.Table")
-require("scripts.objects.Zone")
+require 'collections.List'
+require 'collections.Table'
+require 'objects.Zone'
 
 local heroFigureScript = [[
     GAME_BOARD_GUID = Global.getVar('GAME_BOARD_GUID')

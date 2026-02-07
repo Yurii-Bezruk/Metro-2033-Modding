@@ -1,9 +1,9 @@
-require("scripts.util.rounding")
-require("scripts.util.circle")
-require("scripts.collections.List")
-require("scripts.collections.Table")
-require("scripts.collections.Set")
-require("scripts.collections.Queue")
+require 'util.rounding'
+require 'util.circle'
+require 'collections.List'
+require 'collections.Table'
+require 'collections.Set'
+require 'collections.Queue'
 
 IGNORE_INACTIVE_ZONES = Global.getVar('IGNORE_INACTIVE_ZONES')
 ADMIN_BOARD_GUID = Global.getVar('ADMIN_BOARD_GUID')
