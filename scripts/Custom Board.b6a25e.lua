@@ -16,7 +16,7 @@ function onLoad()
     ADMIN_BOARD = {
         obj = getObjectFromGUID(ADMIN_BOARD_GUID),
         getActiveHeroes = function(self)
-            return Table(deepCopy(self.obj.call('getActiveHeroes')))
+            return Table(Table.deepCopy(self.obj.call('getActiveHeroes')))
         end,
         equipmentCount = function(self, hero_name, equip_name)
             return self.obj.call('equipmentCountExported', {hero_name=hero_name, equip_name=equip_name})
