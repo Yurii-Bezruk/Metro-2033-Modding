@@ -1,4 +1,4 @@
-require 'collections.List'
+local List = require 'collections.List'
 
 function Zone(guid)
     local zone = getObjectFromGUID(guid)
@@ -16,7 +16,7 @@ function Zone(guid)
     end
 
     self.isEmpty = function()
-        return self.getObjects():size() == 0
+        return self.getObjects().size == 0
     end
 
     self = setmetatable(self, {

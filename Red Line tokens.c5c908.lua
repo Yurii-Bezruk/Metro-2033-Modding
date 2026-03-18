@@ -1,4 +1,4 @@
-require 'collections.Table'
+local Map = require 'collections.Map'
 
 local factionTokenScript = [[
     GAME_BOARD_GUID = Global.getVar('GAME_BOARD_GUID')
@@ -111,7 +111,7 @@ local factionTokenScript = [[
     end
 ]]
 
-FACTION_TOKEN_BAG_GUIDS = Table {
+FACTION_TOKEN_BAG_GUIDS = Map {
     reich = '6e9e5a',
     red_line = 'c5c908',
     bauman = 'e855f1',

@@ -1,7 +1,7 @@
 require 'util.rounding'
 require 'util.circle'
-require 'collections.List'
-require 'collections.Table'
+local List = require 'collections.List'
+local Map = require 'collections.Map'
 require 'collections.Set'
 require 'collections.Queue'
 
@@ -16,7 +16,7 @@ function onLoad()
     ADMIN_BOARD = {
         obj = getObjectFromGUID(ADMIN_BOARD_GUID),
         getActiveHeroes = function(self)
-            return Table(Table.deepCopy(self.obj.call('getActiveHeroes')))
+            return Map(Map.deepCopy(self.obj.call('getActiveHeroes')))
         end,
         equipmentCount = function(self, hero_name, equip_name)
             return self.obj.call('equipmentCountExported', {hero_name=hero_name, equip_name=equip_name})
@@ -55,7 +55,7 @@ end
 
 function findStationByPosition(position)
     local position = round(position, 2)
-    return stations:findFirstPair(|name, station|
+    return stations:find(|name, station|
             station.position.x == position.x and station.position.z == position.z)
 end
 
@@ -95,7 +95,7 @@ end
 
 function highlightPossibleAttacks(faction)
     local ownedStations = getOwnedStations(faction)
-    if ownedStations:size() == 0 then
+    if ownedStations.size == 0 then
         do return end
     end
     local activeHeroes = ADMIN_BOARD:getActiveHeroes()
@@ -134,7 +134,7 @@ function highlightPossibleAttacks(faction)
     end
 
     -- searching for all possible attacks from our stations
-    for name in ownedStations:iterator() do
+    for name in ownedStations:valuesIterator() do
         possibleAttacks:putAll(findPossibleAttacks(name, ownedStations, occupiedAbandonedStations))
     end
 
@@ -277,13 +277,13 @@ StationType = {
     ABANDONED = 'ABANDONED'
 }
 
-stations = Table {
+stations = Map {
     aeroport = {
         position = Vector(-9.13, 0.6, -8.30),
         zone = Color.ORANGE,
         type = StationType.NEUTRAL,
         production = Production.PORK,
-        neighbours = Table {
+        neighbours = Map {
             dynamo = Neighbouring.TUNNEL
         }
     },
@@ -292,7 +292,7 @@ stations = Table {
         zone = Color.ORANGE,
         type = StationType.NEUTRAL,
         production = Production.BULLET,
-        neighbours = Table {
+        neighbours = Map {
             aeroport = Neighbouring.TUNNEL,
             belorusskaya_green = Neighbouring.TUNNEL
         }
@@ -302,7 +302,7 @@ stations = Table {
         zone = Color.ORANGE,
         type = StationType.NEUTRAL,
         production = Production.MUSHROOM,
-        neighbours = Table {
+        neighbours = Map {
             dynamo = Neighbouring.TUNNEL,
             mayakovskaya = Neighbouring.TUNNEL,
             belorusskaya_ganza = Neighbouring.PASSAGE
@@ -313,7 +313,7 @@ stations = Table {
         zone = Color.ORANGE,
         type = StationType.GANZA,
         production = Production.GENERIC,
-        neighbours = Table {
+        neighbours = Map {
             mendeleevskaya_ganza = Neighbouring.TUNNEL,
             barricadnaya_ganza = Neighbouring.TUNNEL,
             belorusskaya_green = Neighbouring.PASSAGE
@@ -324,7 +324,7 @@ stations = Table {
         zone = Color.ORANGE,
         type = StationType.NEUTRAL,
         production = Production.MUSHROOM,
-        neighbours = Table {
+        neighbours = Map {
             savelovskaya = Neighbouring.TUNNEL,
             tsvetnoy_bulvar = Neighbouring.TUNNEL,
             mendeleevskaya_ganza = Neighbouring.PASSAGE
@@ -335,7 +335,7 @@ stations = Table {
         zone = Color.ORANGE,
         type = StationType.GANZA,
         production = Production.GENERIC,
-        neighbours = Table {
+        neighbours = Map {
             belorusskaya_ganza = Neighbouring.TUNNEL,
             dostoevskaya_ganza = Neighbouring.TUNNEL,
             mendeleevskaya_grey = Neighbouring.PASSAGE
@@ -346,7 +346,7 @@ stations = Table {
         zone = Color.ORANGE,
         type = StationType.NEUTRAL,
         production = Production.BULLET,
-        neighbours = Table {
+        neighbours = Map {
             mendeleevskaya_grey = Neighbouring.TUNNEL
         }
     },
@@ -355,7 +355,7 @@ stations = Table {
         zone = Color.GREEN,
         type = StationType.NEUTRAL,
         production = Production.BULLET,
-        neighbours = Table {
+        neighbours = Map {
             trubnaya = Neighbouring.TUNNEL,
             dostoevskaya_ganza = Neighbouring.PASSAGE
         }
@@ -365,7 +365,7 @@ stations = Table {
         zone = Color.GREEN,
         type = StationType.GANZA,
         production = Production.GENERIC,
-        neighbours = Table {
+        neighbours = Map {
             mendeleevskaya_ganza = Neighbouring.TUNNEL,
             prospect_mira_ganza = Neighbouring.TUNNEL,
             dostoevskaya_light_green = Neighbouring.PASSAGE
@@ -376,7 +376,7 @@ stations = Table {
         zone = Color.GREEN,
         type = StationType.NEUTRAL,
         production = Production.PORK,
-        neighbours = Table {
+        neighbours = Map {
             rizhskaya = Neighbouring.TUNNEL,
             suharevskaya = Neighbouring.TUNNEL,
             prospect_mira_ganza = Neighbouring.PASSAGE
@@ -387,7 +387,7 @@ stations = Table {
         zone = Color.GREEN,
         type = StationType.GANZA,
         production = Production.GENERIC,
-        neighbours = Table {
+        neighbours = Map {
             dostoevskaya_ganza = Neighbouring.TUNNEL,
             komsomolskaya_ganza = Neighbouring.TUNNEL,
             prospect_mira_red = Neighbouring.PASSAGE
@@ -398,7 +398,7 @@ stations = Table {
         zone = Color.GREEN,
         type = StationType.NEUTRAL,
         production = Production.BULLET,
-        neighbours = Table {
+        neighbours = Map {
             prospect_mira_red = Neighbouring.TUNNEL
         }
     },       
@@ -407,7 +407,7 @@ stations = Table {
         zone = Color.RED,
         type = StationType.ABANDONED,
         production = Production.GENERIC,
-        neighbours = Table {
+        neighbours = Map {
             krasnoselskaya = Neighbouring.TUNNEL,
             kransnye_vorota = Neighbouring.TUNNEL,
             komsomolskaya_ganza = Neighbouring.PASSAGE
@@ -418,7 +418,7 @@ stations = Table {
         zone = Color.RED,
         type = StationType.GANZA,
         production = Production.GENERIC,
-        neighbours = Table {
+        neighbours = Map {
             prospect_mira_ganza = Neighbouring.TUNNEL,
             kurskaya_ganza = Neighbouring.TUNNEL,
             komsomolskaya_red = Neighbouring.PASSAGE
@@ -429,7 +429,7 @@ stations = Table {
         zone = Color.RED,
         type = StationType.ABANDONED,
         production = Production.GENERIC,
-        neighbours = Table {
+        neighbours = Map {
             komsomolskaya_red = Neighbouring.TUNNEL
         }
     },
@@ -438,7 +438,7 @@ stations = Table {
         zone = Color.ORANGE,
         type = StationType.NEUTRAL,
         production = Production.PORK,
-        neighbours = Table {
+        neighbours = Map {
             ulitsa_1905_goda = Neighbouring.TUNNEL
         }
     },
@@ -447,7 +447,7 @@ stations = Table {
         zone = Color.ORANGE,
         type = StationType.NEUTRAL,
         production = Production.MUSHROOM,
-        neighbours = Table {
+        neighbours = Map {
             beregovaya = Neighbouring.TUNNEL,
             barricadnaya_pink = Neighbouring.TUNNEL
         }
@@ -457,7 +457,7 @@ stations = Table {
         zone = Color.ORANGE,
         type = StationType.GANZA,
         production = Production.GENERIC,
-        neighbours = Table {
+        neighbours = Map {
             belorusskaya_ganza = Neighbouring.TUNNEL,
             kievskaya_ganza = Neighbouring.TUNNEL,
             barricadnaya_pink = Neighbouring.PASSAGE
@@ -468,7 +468,7 @@ stations = Table {
         zone = Color.ORANGE,
         type = StationType.NEUTRAL,
         production = Production.BULLET,
-        neighbours = Table {
+        neighbours = Map {
             ulitsa_1905_goda = Neighbouring.TUNNEL,
             pushkinskaya = Neighbouring.TUNNEL,
             barricadnaya_ganza = Neighbouring.PASSAGE
@@ -479,7 +479,7 @@ stations = Table {
         zone = Color.GREEN,
         type = StationType.NEUTRAL,
         production = Production.BULLET,
-        neighbours = Table {
+        neighbours = Map {
             barricadnaya_pink = Neighbouring.TUNNEL,
             kuznetskiy_most = Neighbouring.TUNNEL,
             chehovskaya = Neighbouring.PASSAGE,
@@ -491,7 +491,7 @@ stations = Table {
         zone = Color.GREEN,
         type = StationType.NEUTRAL,
         production = Production.PORK,
-        neighbours = Table {
+        neighbours = Map {
             tsvetnoy_bulvar = Neighbouring.TUNNEL,
             borovitskaya = Neighbouring.TUNNEL,
             pushkinskaya = Neighbouring.PASSAGE,
@@ -503,7 +503,7 @@ stations = Table {
         zone = Color.GREEN,
         type = StationType.NEUTRAL,
         production = Production.MUSHROOM,
-        neighbours = Table {
+        neighbours = Map {
             mayakovskaya = Neighbouring.TUNNEL,
             teatralnaya = Neighbouring.TUNNEL,
             pushkinskaya = Neighbouring.PASSAGE,
@@ -515,7 +515,7 @@ stations = Table {
         zone = Color.ORANGE,
         type = StationType.NEUTRAL,
         production = Production.PORK,
-        neighbours = Table {
+        neighbours = Map {
             belorusskaya_green = Neighbouring.TUNNEL,
             tverskaya = Neighbouring.TUNNEL
         }
@@ -525,7 +525,7 @@ stations = Table {
         zone = Color.GREEN,
         type = StationType.NEUTRAL,
         production = Production.PORK,
-        neighbours = Table {
+        neighbours = Map {
             mendeleevskaya_grey = Neighbouring.TUNNEL,
             chehovskaya = Neighbouring.TUNNEL,
             trubnaya = Neighbouring.PASSAGE
@@ -536,7 +536,7 @@ stations = Table {
         zone = Color.GREEN,
         type = StationType.NEUTRAL,
         production = Production.MUSHROOM,
-        neighbours = Table {
+        neighbours = Map {
             dostoevskaya_light_green = Neighbouring.TUNNEL,
             sretenskiy_bulvar = Neighbouring.TUNNEL,
             tsvetnoy_bulvar = Neighbouring.PASSAGE
@@ -547,7 +547,7 @@ stations = Table {
         zone = Color.GREEN,
         type = StationType.NEUTRAL,
         production = Production.MUSHROOM,
-        neighbours = Table {
+        neighbours = Map {
             prospect_mira_red = Neighbouring.TUNNEL,
             turgenevskaya = Neighbouring.TUNNEL
         }
@@ -557,7 +557,7 @@ stations = Table {
         zone = Color.RED,
         type = StationType.NEUTRAL,
         production = Production.BULLET,
-        neighbours = Table {
+        neighbours = Map {
             komsomolskaya_red = Neighbouring.TUNNEL,
             chistye_prudy = Neighbouring.TUNNEL
         }
@@ -567,7 +567,7 @@ stations = Table {
         zone = Color.RED,
         type = StationType.NEUTRAL,
         production = Production.MUSHROOM,
-        neighbours = Table {
+        neighbours = Map {
             kransnye_vorota = Neighbouring.TUNNEL,
             lubyanka = Neighbouring.TUNNEL,
             sretenskiy_bulvar = Neighbouring.PASSAGE,
@@ -579,7 +579,7 @@ stations = Table {
         zone = Color.RED,
         type = StationType.NEUTRAL,
         production = Production.PORK,
-        neighbours = Table {
+        neighbours = Map {
             trubnaya = Neighbouring.TUNNEL,
             chkalovskaya = Neighbouring.TUNNEL,
             chistye_prudy = Neighbouring.PASSAGE,
@@ -591,7 +591,7 @@ stations = Table {
         zone = Color.RED,
         type = StationType.NEUTRAL,
         production = Production.BULLET,
-        neighbours = Table {
+        neighbours = Map {
             suharevskaya = Neighbouring.TUNNEL,
             kitay_gorod_orange = Neighbouring.TUNNEL,
             chistye_prudy = Neighbouring.PASSAGE,
@@ -603,7 +603,7 @@ stations = Table {
         zone = Color.RED,
         type = StationType.NEUTRAL,
         production = Production.PORK,
-        neighbours = Table {
+        neighbours = Map {
             chistye_prudy = Neighbouring.TUNNEL,
             ohotniy_ryad = Neighbouring.TUNNEL,
             kuznetskiy_most = Neighbouring.PASSAGE
@@ -614,7 +614,7 @@ stations = Table {
         zone = Color.RED,
         type = StationType.NEUTRAL,
         production = Production.MUSHROOM,
-        neighbours = Table {
+        neighbours = Map {
             pushkinskaya = Neighbouring.TUNNEL,
             kitay_gorod_pink = Neighbouring.TUNNEL,
             lubyanka = Neighbouring.PASSAGE
@@ -625,7 +625,7 @@ stations = Table {
         zone = Color.RED,
         type = StationType.NEUTRAL,
         production = Production.BULLET,
-        neighbours = Table {
+        neighbours = Map {
             lubyanka = Neighbouring.TUNNEL,
             biblioteka_imeni_lenina = Neighbouring.TUNNEL,
             teatralnaya = Neighbouring.PASSAGE,
@@ -637,7 +637,7 @@ stations = Table {
         zone = Color.RED,
         type = StationType.NEUTRAL,
         production = Production.PORK,
-        neighbours = Table {
+        neighbours = Map {
             tverskaya = Neighbouring.TUNNEL,
             novokuznetskaya = Neighbouring.TUNNEL,
             ohotniy_ryad = Neighbouring.PASSAGE,
@@ -649,7 +649,7 @@ stations = Table {
         zone = Color.RED,
         type = StationType.NEUTRAL,
         production = Production.MUSHROOM,
-        neighbours = Table {
+        neighbours = Map {
             kurskaya_purple = Neighbouring.TUNNEL,
             arbatskaya_purple = Neighbouring.TUNNEL,
             ohotniy_ryad = Neighbouring.PASSAGE,
@@ -661,7 +661,7 @@ stations = Table {
         zone = Color.BROWN,
         type = StationType.NEUTRAL,
         production = Production.BULLET,
-        neighbours = Table {
+        neighbours = Map {
             turgenevskaya = Neighbouring.TUNNEL,
             tretyakovskaya_orange = Neighbouring.TUNNEL,
             kitay_gorod_pink = Neighbouring.PASSAGE
@@ -672,7 +672,7 @@ stations = Table {
         zone = Color.BROWN,
         type = StationType.NEUTRAL,
         production = Production.MUSHROOM,
-        neighbours = Table {
+        neighbours = Map {
             kuznetskiy_most = Neighbouring.TUNNEL,
             taganskaya_pink = Neighbouring.TUNNEL,
             kitay_gorod_orange = Neighbouring.PASSAGE
@@ -683,7 +683,7 @@ stations = Table {
         zone = Color.BROWN,
         type = StationType.GANZA,
         production = Production.GENERIC,
-        neighbours = Table {
+        neighbours = Map {
             komsomolskaya_ganza = Neighbouring.TUNNEL,
             taganskaya_ganza = Neighbouring.TUNNEL,
             kurskaya_purple = Neighbouring.PASSAGE,
@@ -695,7 +695,7 @@ stations = Table {
         zone = Color.BROWN,
         type = StationType.NEUTRAL,
         production = Production.MUSHROOM,
-        neighbours = Table {
+        neighbours = Map {
             ploshad_revolutsii = Neighbouring.TUNNEL,
             baumanskaya = Neighbouring.TUNNEL,
             kurskaya_ganza = Neighbouring.PASSAGE,
@@ -707,7 +707,7 @@ stations = Table {
         zone = Color.BROWN,
         type = StationType.NEUTRAL,
         production = Production.BULLET,
-        neighbours = Table {
+        neighbours = Map {
             sretenskiy_bulvar = Neighbouring.TUNNEL,
             rimskaya = Neighbouring.TUNNEL,
             kurskaya_ganza = Neighbouring.PASSAGE,
@@ -719,7 +719,7 @@ stations = Table {
         zone = Color.BROWN,
         type = StationType.NEUTRAL,
         production = Production.PORK,
-        neighbours = Table {
+        neighbours = Map {
             kurskaya_purple = Neighbouring.TUNNEL,
             electrozavodskaya = Neighbouring.TUNNEL
         }
@@ -729,7 +729,7 @@ stations = Table {
         zone = Color.BROWN,
         type = StationType.NEUTRAL,
         production = Production.BULLET,
-        neighbours = Table {
+        neighbours = Map {
             baumanskaya = Neighbouring.TUNNEL
         }
     },
@@ -738,7 +738,7 @@ stations = Table {
         zone = Color.BROWN,
         type = StationType.NEUTRAL,
         production = Production.PORK,
-        neighbours = Table {
+        neighbours = Map {
             chkalovskaya = Neighbouring.TUNNEL,
             krestyanskaya_zastava = Neighbouring.TUNNEL,
             ploshyad_illicha = Neighbouring.PASSAGE
@@ -749,7 +749,7 @@ stations = Table {
         zone = Color.BROWN,
         type = StationType.ABANDONED,
         production = Production.GENERIC,
-        neighbours = Table {
+        neighbours = Map {
             marksistskaya = Neighbouring.TUNNEL,
             rimskaya = Neighbouring.PASSAGE
         }
@@ -759,7 +759,7 @@ stations = Table {
         zone = Color.BROWN,
         type = StationType.ABANDONED,
         production = Production.GENERIC,
-        neighbours = Table {
+        neighbours = Map {
             taganskaya_pink = Neighbouring.TUNNEL,
             krestyanskaya_zastava = Neighbouring.PASSAGE
         }
@@ -769,7 +769,7 @@ stations = Table {
         zone = Color.BROWN,
         type = StationType.ABANDONED,
         production = Production.GENERIC,
-        neighbours = Table {
+        neighbours = Map {
             rimskaya = Neighbouring.TUNNEL,
             proletarskaya = Neighbouring.PASSAGE
         }
@@ -779,7 +779,7 @@ stations = Table {
         zone = Color.BROWN,
         type = StationType.NEUTRAL,
         production = Production.PORK,
-        neighbours = Table {
+        neighbours = Map {
             kitay_gorod_pink = Neighbouring.TUNNEL,
             proletarskaya = Neighbouring.TUNNEL,
             taganskaya_ganza = Neighbouring.PASSAGE,
@@ -791,7 +791,7 @@ stations = Table {
         zone = Color.BROWN,
         type = StationType.GANZA,
         production = Production.GENERIC,
-        neighbours = Table {
+        neighbours = Map {
             kurskaya_ganza = Neighbouring.TUNNEL,
             paveletskaya_ganza = Neighbouring.TUNNEL,
             taganskaya_pink = Neighbouring.PASSAGE,
@@ -803,7 +803,7 @@ stations = Table {
         zone = Color.BROWN,
         type = StationType.NEUTRAL,
         production = Production.MUSHROOM,
-        neighbours = Table {
+        neighbours = Map {
             ploshyad_illicha = Neighbouring.TUNNEL,
             tretyakovskaya_yellow = Neighbouring.TUNNEL,
             taganskaya_pink = Neighbouring.PASSAGE,
@@ -815,7 +815,7 @@ stations = Table {
         zone = Color.YELLOW,
         type = StationType.NEUTRAL,
         production = Production.BULLET,
-        neighbours = Table {
+        neighbours = Map {
             marksistskaya = Neighbouring.TUNNEL,
             tretyakovskaya_orange = Neighbouring.PASSAGE,
             novokuznetskaya = Neighbouring.PASSAGE
@@ -826,7 +826,7 @@ stations = Table {
         zone = Color.YELLOW,
         type = StationType.NEUTRAL,
         production = Production.MUSHROOM,
-        neighbours = Table {
+        neighbours = Map {
             kitay_gorod_orange = Neighbouring.TUNNEL,
             oktyabrskaya_orange = Neighbouring.TUNNEL,
             tretyakovskaya_yellow = Neighbouring.PASSAGE,
@@ -838,7 +838,7 @@ stations = Table {
         zone = Color.YELLOW,
         type = StationType.NEUTRAL,
         production = Production.PORK,
-        neighbours = Table {
+        neighbours = Map {
             teatralnaya = Neighbouring.TUNNEL,
             paveletskaya_green = Neighbouring.TUNNEL,
             tretyakovskaya_yellow = Neighbouring.PASSAGE,
@@ -850,7 +850,7 @@ stations = Table {
         zone = Color.BLACK,
         type = StationType.POLIS,
         production = Production.GENERIC,
-        neighbours = Table {
+        neighbours = Map {
             chehovskaya = Neighbouring.TUNNEL,
             polyanka = Neighbouring.TUNNEL,
             biblioteka_imeni_lenina = Neighbouring.PASSAGE,
@@ -863,7 +863,7 @@ stations = Table {
         zone = Color.BLACK,
         type = StationType.POLIS,
         production = Production.GENERIC,
-        neighbours = Table {
+        neighbours = Map {
             ohotniy_ryad = Neighbouring.TUNNEL,
             kropotkinskaya = Neighbouring.TUNNEL,
             borovitskaya = Neighbouring.PASSAGE,
@@ -876,7 +876,7 @@ stations = Table {
         zone = Color.BLACK,
         type = StationType.POLIS,
         production = Production.GENERIC,
-        neighbours = Table {
+        neighbours = Map {
             arbatskaya_blue = Neighbouring.TUNNEL,
             borovitskaya = Neighbouring.PASSAGE,
             biblioteka_imeni_lenina = Neighbouring.PASSAGE,
@@ -888,7 +888,7 @@ stations = Table {
         zone = Color.BLACK,
         type = StationType.POLIS,
         production = Production.GENERIC,
-        neighbours = Table {
+        neighbours = Map {
             ploshad_revolutsii = Neighbouring.TUNNEL,
             smolenskaya_purple = Neighbouring.TUNNEL,
             borovitskaya = Neighbouring.PASSAGE,
@@ -901,7 +901,7 @@ stations = Table {
         zone = Color.BLUE,
         type = StationType.NEUTRAL,
         production = Production.BULLET,
-        neighbours = Table {
+        neighbours = Map {
             aleksandrovskiy_sad = Neighbouring.TUNNEL,
             smolenskaya_blue = Neighbouring.TUNNEL
         }
@@ -911,7 +911,7 @@ stations = Table {
         zone = Color.BLUE,
         type = StationType.NEUTRAL,
         production = Production.PORK,
-        neighbours = Table {
+        neighbours = Map {
             arbatskaya_purple = Neighbouring.TUNNEL,
             kievskaya_purple = Neighbouring.TUNNEL
         }
@@ -921,7 +921,7 @@ stations = Table {
         zone = Color.BLUE,
         type = StationType.NEUTRAL,
         production = Production.PORK,
-        neighbours = Table {
+        neighbours = Map {
             arbatskaya_blue = Neighbouring.TUNNEL,
             kievskaya_blue = Neighbouring.TUNNEL
         }
@@ -931,7 +931,7 @@ stations = Table {
         zone = Color.BLUE,
         type = StationType.NEUTRAL,
         production = Production.BULLET,
-        neighbours = Table {
+        neighbours = Map {
             smolenskaya_purple = Neighbouring.TUNNEL,
             kievskaya_blue = Neighbouring.PASSAGE,
             kievskaya_ganza = Neighbouring.PASSAGE
@@ -942,7 +942,7 @@ stations = Table {
         zone = Color.BLUE,
         type = StationType.NEUTRAL,
         production = Production.MUSHROOM,
-        neighbours = Table {
+        neighbours = Map {
             smolenskaya_blue = Neighbouring.TUNNEL,
             studencheskaya = Neighbouring.TUNNEL,
             kievskaya_purple = Neighbouring.PASSAGE,
@@ -954,7 +954,7 @@ stations = Table {
         zone = Color.BLUE,
         type = StationType.GANZA,
         production = Production.GENERIC,
-        neighbours = Table {
+        neighbours = Map {
             barricadnaya_ganza = Neighbouring.TUNNEL,
             park_kultury_ganza = Neighbouring.TUNNEL,
             kievskaya_purple = Neighbouring.PASSAGE,
@@ -966,7 +966,7 @@ stations = Table {
         zone = Color.BLUE,
         type = StationType.ABANDONED,
         production = Production.GENERIC,
-        neighbours = Table {
+        neighbours = Map {
             kievskaya_blue = Neighbouring.TUNNEL
         }
     },
@@ -975,7 +975,7 @@ stations = Table {
         zone = Color.BLUE,
         type = StationType.GANZA,
         production = Production.GENERIC,
-        neighbours = Table {
+        neighbours = Map {
             kievskaya_ganza = Neighbouring.TUNNEL,
             oktyabrskaya_ganza = Neighbouring.TUNNEL,
             park_kultury_red = Neighbouring.PASSAGE
@@ -986,7 +986,7 @@ stations = Table {
         zone = Color.BLUE,
         type = StationType.NEUTRAL,
         production = Production.PORK,
-        neighbours = Table {
+        neighbours = Map {
             kropotkinskaya = Neighbouring.TUNNEL,
             frunzenskaya = Neighbouring.TUNNEL,
             park_kultury_ganza = Neighbouring.PASSAGE
@@ -997,7 +997,7 @@ stations = Table {
         zone = Color.BLUE,
         type = StationType.NEUTRAL,
         production = Production.MUSHROOM,
-        neighbours = Table {
+        neighbours = Map {
             biblioteka_imeni_lenina = Neighbouring.TUNNEL,
             park_kultury_red = Neighbouring.TUNNEL
         }
@@ -1007,7 +1007,7 @@ stations = Table {
         zone = Color.BLUE,
         type = StationType.NEUTRAL,
         production = Production.BULLET,
-        neighbours = Table {
+        neighbours = Map {
             sportivnaya = Neighbouring.TUNNEL,
             park_kultury_red = Neighbouring.TUNNEL
         }
@@ -1017,7 +1017,7 @@ stations = Table {
         zone = Color.BLUE,
         type = StationType.NEUTRAL,
         production = Production.MUSHROOM,
-        neighbours = Table {
+        neighbours = Map {
             frunzenskaya = Neighbouring.TUNNEL
         }
     },
@@ -1026,7 +1026,7 @@ stations = Table {
         zone = Color.YELLOW,
         type = StationType.GANZA,
         production = Production.GENERIC,
-        neighbours = Table {
+        neighbours = Map {
             park_kultury_ganza = Neighbouring.TUNNEL,
             serpuhovskaya_ganza = Neighbouring.TUNNEL,
             oktyabrskaya_orange = Neighbouring.PASSAGE
@@ -1037,7 +1037,7 @@ stations = Table {
         zone = Color.YELLOW,
         type = StationType.NEUTRAL,
         production = Production.PORK,
-        neighbours = Table {
+        neighbours = Map {
             tretyakovskaya_orange = Neighbouring.TUNNEL,
             shabolovskaya = Neighbouring.TUNNEL,
             oktyabrskaya_ganza = Neighbouring.PASSAGE
@@ -1048,7 +1048,7 @@ stations = Table {
         zone = Color.YELLOW,
         type = StationType.NEUTRAL,
         production = Production.MUSHROOM,
-        neighbours = Table {
+        neighbours = Map {
             oktyabrskaya_orange = Neighbouring.TUNNEL
         }
     },
@@ -1057,7 +1057,7 @@ stations = Table {
         zone = Color.YELLOW,
         type = StationType.GANZA,
         production = Production.GENERIC,
-        neighbours = Table {
+        neighbours = Map {
             oktyabrskaya_ganza = Neighbouring.TUNNEL,
             paveletskaya_ganza = Neighbouring.TUNNEL,
             serpuhovskaya_grey = Neighbouring.PASSAGE
@@ -1068,7 +1068,7 @@ stations = Table {
         zone = Color.YELLOW,
         type = StationType.NEUTRAL,
         production = Production.MUSHROOM,
-        neighbours = Table {
+        neighbours = Map {
             tulskaya = Neighbouring.TUNNEL,
             polyanka = Neighbouring.TUNNEL,
             serpuhovskaya_ganza = Neighbouring.PASSAGE
@@ -1079,7 +1079,7 @@ stations = Table {
         zone = Color.YELLOW,
         type = StationType.ABANDONED,
         production = Production.GENERIC,
-        neighbours = Table {
+        neighbours = Map {
             serpuhovskaya_grey = Neighbouring.TUNNEL
         }
     },
@@ -1088,7 +1088,7 @@ stations = Table {
         zone = Color.YELLOW,
         type = StationType.NEUTRAL,
         production = Production.BULLET,
-        neighbours = Table {
+        neighbours = Map {
             borovitskaya = Neighbouring.TUNNEL,
             serpuhovskaya_grey = Neighbouring.TUNNEL
         }
@@ -1098,7 +1098,7 @@ stations = Table {
         zone = Color.YELLOW,
         type = StationType.GANZA,
         production = Production.GENERIC,
-        neighbours = Table {
+        neighbours = Map {
             serpuhovskaya_ganza = Neighbouring.TUNNEL,
             taganskaya_ganza = Neighbouring.TUNNEL,
             paveletskaya_green = Neighbouring.PASSAGE
@@ -1109,7 +1109,7 @@ stations = Table {
         zone = Color.YELLOW,
         type = StationType.NEUTRAL,
         production = Production.BULLET,
-        neighbours = Table {
+        neighbours = Map {
             novokuznetskaya = Neighbouring.TUNNEL,
             avtozavodskaya = Neighbouring.TUNNEL,
             paveletskaya_ganza = Neighbouring.PASSAGE
@@ -1120,7 +1120,7 @@ stations = Table {
         zone = Color.YELLOW,
         type = StationType.NEUTRAL,
         production = Production.PORK,
-        neighbours = Table {
+        neighbours = Map {
             paveletskaya_green = Neighbouring.TUNNEL
         }
     }
