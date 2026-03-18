@@ -1,6 +1,7 @@
-require 'collections.List'
-require 'collections.Table'
+local List = require 'collections.List'
+local Map = require 'collections.Map'
 require 'objects.Zone'
+require 'objects.Deck'
 
 local heroFigureScript = [[
     GAME_BOARD_GUID = Global.getVar('GAME_BOARD_GUID')
@@ -175,13 +176,13 @@ end
 -- ------------------------------------------------------------
 
 function findHeroByCard(heroCard)
-    local name, hero = heroes:findFirstPair(|name, hero| hero.card_guid == heroCard.guid)    
+    local name, hero = heroes:find(|name, hero| hero.card_guid == heroCard.guid)    
     hero.card = getObjectFromGUID(hero.card_guid)
     return name, hero
 end
 
 function getActiveHeroes()
-    return heroes:filter(|name, hero| hero.faction ~= nil)
+    return heroes:filter(|name, hero| hero.faction ~= nil):toTable()
 end
 
 function assignHero(heroCard)
@@ -215,7 +216,7 @@ function deassignHero(heroCard, delay)
 end
 
 function getHeroSpeed(heroFigure)
-    local name, hero = heroes:findFirstPair(|name, hero| hero.figure.guid == heroFigure.guid)
+    local name, hero = heroes:find(|name, hero| hero.figure.guid == heroFigure.guid)
     local speed = hero.speed
     speed = speed + equipmentCount(name, 'locomotive')
     speed = speed - equipmentCount(name, 'rpk')
@@ -231,8 +232,7 @@ end
 
 function equipmentCount(hero_name, equip_name)
     return getEquipment(heroes[hero_name])
-        :filter(|card| equipment[equip_name]:contains(card.guid))
-        :size()
+        :filter(|card| equipment[equip_name]:contains(card.guid)).size
 end
 
 -- ------------------------------------------------------------
@@ -256,6 +256,7 @@ function onObjectDrop(player_color, object)
         for i, heroCard in ipairs(object.getObjects()) do
             if HERO_CARD_START_ZONE.getObjects()
                     :filter(|obj| obj.type == 'Deck')
+                    :map(|obj| Deck(obj.guid))
                     :anyMatch(|deck| deck.contains(heroCard)) then
                 deassignHero(heroCard, i * 0.85)
             end            
@@ -280,7 +281,7 @@ HERO_FIGURES_ZONES = List{Zone('93c8a1'), Zone('49a450'), Zone('29f2ce'), Zone('
 HERO_CARD_START_ZONE = Zone('c5d6cc')
 DEFAULT_COLOR_TINT = Color(0, 0, 0, 255)
 
-heroes = Table {
+heroes = Map {
     hunter = {
         figure = getObjectFromGUID('742d9b'),
         card_guid = '4e1b3f',
@@ -319,7 +320,7 @@ heroes = Table {
     }
 }
 
-factions = Table {
+factions = Map {
     reich = {
         board = getObjectFromGUID('748f36'),
         color = Color.GREEN,

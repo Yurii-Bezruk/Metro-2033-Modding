@@ -1,4 +1,4 @@
-require 'collections.List'
+local List = require 'collections.List'
 
 function clearCircle(object)
     object.setVectorLines{}
