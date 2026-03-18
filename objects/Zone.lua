@@ -1,4 +1,4 @@
-require("scripts.collections.List")
+require 'collections.List'
 
 function Zone(guid)
     local zone = getObjectFromGUID(guid)

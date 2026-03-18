@@ -1,4 +1,4 @@
-require("scripts.collections.Table")
+require 'collections.Table'
 
 local factionTokenScript = [[
     GAME_BOARD_GUID = Global.getVar('GAME_BOARD_GUID')
