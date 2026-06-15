@@ -1,7 +1,7 @@
-local List = require 'collections.List'
-local Map = require 'collections.Map'
-require 'objects.Zone'
-require 'objects.Deck'
+local List = require("collections.List")
+local Map = require("collections.Map")
+require("objects.Zone")
+require("objects.Deck")
 
 local heroFigureScript = [[
     GAME_BOARD_GUID = Global.getVar('GAME_BOARD_GUID')

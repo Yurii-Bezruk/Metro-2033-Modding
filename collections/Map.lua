@@ -546,7 +546,7 @@ function Map:packMap(mapper)
     local newMap = Map{}
     for _, k, v in Map.fullIterator(self) do
         local result = Map.pack(mapper(k, v))
-        for _, resK, resV in Map.fullIterator(result) do
+        for _, resK, resV in result:fullIterator() do
             newMap:set(resK, resV)
         end
     end
@@ -572,6 +572,7 @@ function Map:reduce(reducer, identity)
     return accumulator
 end
 
+-- TODO remove usages
 function Map.deepCopy(input)
     if type(input) ~= 'table' then
         return input
