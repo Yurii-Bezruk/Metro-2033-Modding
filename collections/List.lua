@@ -502,7 +502,7 @@ function List:concat(sep, from, to)
     
     local str = ''
     for i, v in List.iterator(self, from, to) do
-        str = ('%s%s%s'):format(str, sep, tostring(self[i]))
+        str = ('%s%s%s'):format(str, sep, tostring(v))
     end
     return str:sub(#sep + 1)
 end
@@ -635,7 +635,7 @@ function List:packMap(mapper)
     local size = 0
     for i, v in List.iterator(self) do
         local result = List.pack(mapper(v))
-        for _, resV in List.iterator(result) do
+        for _, resV in result:iterator() do
             size = size + 1
             newList[size] = resV
         end

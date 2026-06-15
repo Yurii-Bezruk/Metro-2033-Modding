@@ -1,9 +1,9 @@
-require 'util.rounding'
-require 'util.circle'
-local List = require 'collections.List'
-local Map = require 'collections.Map'
-require 'collections.Set'
-require 'collections.Queue'
+require("util.rounding")
+require("util.circle")
+local List = require("collections.List")
+local Map = require("collections.Map")
+local Set = require("collections.Set")
+require("collections.Queue")
 
 IGNORE_INACTIVE_ZONES = Global.getVar('IGNORE_INACTIVE_ZONES')
 ADMIN_BOARD_GUID = Global.getVar('ADMIN_BOARD_GUID')
@@ -135,13 +135,13 @@ function highlightPossibleAttacks(faction)
 
     -- searching for all possible attacks from our stations
     for name in ownedStations:valuesIterator() do
-        possibleAttacks:putAll(findPossibleAttacks(name, ownedStations, occupiedAbandonedStations))
+        possibleAttacks:update(findPossibleAttacks(name, ownedStations, occupiedAbandonedStations))
     end
 
     possibleAttacks:removeAll(ownedStations)
-    possibleAttacks:putAll(occupiedStations)
+    possibleAttacks:insertAll(occupiedStations)
     if highlightLocomotive then
-        possibleAttacks:put(heroStationName)    
+        possibleAttacks:insert(heroStationName)    
     end
     possibleAttacks:forEach(highlight)
     HIGHLIGHTED_BY = faction
@@ -152,12 +152,12 @@ function findPossibleAttacks(name, ownedStations, occupiedAbandonedStations)
     local possibleAttacks = Set{}
     local queue = Queue()
 
-    possibleAttacks:putAll(ownedStations)
+    possibleAttacks:insertAll(ownedStations)
     queue:put{station=stations[name], name=name, speed=speed}
     
     while queue:size() > 0 do
         local next = queue:pop()
-        possibleAttacks:put(next.name)
+        possibleAttacks:insert(next.name)
     
         for neighbour_name, type in pairs(next.station.neighbours) do
             local neighbour = stations[neighbour_name]
@@ -177,7 +177,7 @@ function findPossibleAttacks(name, ownedStations, occupiedAbandonedStations)
             end
         end
     end
-    return possibleAttacks:toList()
+    return possibleAttacks
 end
 
 function putGanzaNeighbours(ganza, speed, occupiedAbandonedStations, queue)
@@ -236,7 +236,7 @@ function findPossibleMoves(name, speed, isAnna)
     
     while queue:size() > 0 do
         local next = queue:pop()
-        possibleMoves:put(next.name)
+        possibleMoves:insert(next.name)
         for neighbour_name, type in pairs(next.station.neighbours) do
             local neighbour = stations[neighbour_name]
             if stationAvailable(neighbour) and not possibleMoves:contains(neighbour_name) then

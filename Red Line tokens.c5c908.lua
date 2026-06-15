@@ -1,4 +1,4 @@
-local Map = require 'collections.Map'
+local Map = require("collections.Map")
 
 local factionTokenScript = [[
     GAME_BOARD_GUID = Global.getVar('GAME_BOARD_GUID')
