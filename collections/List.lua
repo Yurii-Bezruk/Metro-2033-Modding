@@ -24,13 +24,6 @@ end
 
 local TO_STRING_SEEN_STORAGE = setmetatable({}, {__mode = 'k'})
 
-local function getSize(self)
-    if self.size and type(self.size) == 'number' and self.size >= 0 then
-        return self.size
-    end
-    return #self
-end
-
 local function setSize(self, size)
     if self.size and type(self.size) == 'number' and self.size >= 0 then
         self.size = size
@@ -92,12 +85,12 @@ local List = setmetatable({}, {
 function List:new(input)
     assert(type(input) == 'table', "bad argument #1 to 'List:new' (table expected, got " .. type(input) .. ')')
 
-    local newList = {
-        size = getSize(input)
-    }
-    for i = 1, newList.size do
+    local newList = {}
+    local size = List.size(input)
+    for i = 1, size do
         newList[i] = input[i]
     end
+    newList.size = size
 
     self.__index = function(this, index)
         if type(index) == 'number' then
@@ -118,12 +111,16 @@ function List:new(input)
         return self.equals(this, other)
     end
 
-    self.__concat = function(this, other)
+    self.__add = function(this, other)
         return self.combine(this, other)
     end
 
     self.__mul = function(this, times)
         return self.times(this, times)
+    end
+
+    self.__concat = function(this, other)
+        return tostring(this) .. tostring(other)
     end
 
     self.__tostring = function(this)
@@ -192,7 +189,7 @@ function List:isList()
 end
 
 function List:iterator(from, to)
-    local size = getSize(self)
+    local size = List.size(self)
     from = from or 1
     to = to or size
     assert(type(from) == 'number', "bad argument #1 to 'List:iterator' (number expected, got " .. type(from) .. ')')
@@ -215,7 +212,7 @@ function List:iterator(from, to)
 end
 
 function List:reverseIterator(from, to)
-    local size = getSize(self)
+    local size = List.size(self)
     from = from or size
     to = to or 1
     assert(type(from) == 'number', "bad argument #1 to 'List:reverseIterator' (number expected, got " .. type(from) .. ')')
@@ -240,7 +237,7 @@ end
 function List:valuesIterator()
     local i = 0
     local list = self
-    local size = getSize(list)
+    local size = List.size(list)
     return function()
         repeat
             i = i + 1
@@ -253,7 +250,7 @@ end
 
 function List:insert(...)
     local args = table.pack(...)
-    local size = getSize(self)
+    local size = List.size(self)
     local index, value
     if args.n == 0 then
         error("bad argument #1 to 'List:insert' (value or index expected, got nil)")
@@ -270,15 +267,15 @@ function List:insert(...)
 
     setSize(self, size + 1)
     for i = size + 1, index, -1 do
-        self[i] = rawget(self, i - 1)
+        rawset(self, i, rawget(self, i - 1))
     end
-    self[index] = value
+    rawset(self, index, value)
     return self
 end
 
 function List:insertAll(...)
     local args = table.pack(...)
-    local size = getSize(self)
+    local size = List.size(self)
     local index, values
     if args.n == 0 then
         error("bad argument #1 to 'List:insertAll' (table or index expected, got nil)")
@@ -292,11 +289,10 @@ function List:insertAll(...)
         index = transformIndex(index, size)
         assert(index >= 1 and index <= size + 1, "bad argument #1 to 'List:insertAll' (position out of bounds: " .. index .. ')')
     end
-    assert(type(values) == 'table', "bad argument #2 to 'List:insertAll' (table expected, got " .. type(index) .. ')')
+    assert(type(values) == 'table', "bad argument #2 to 'List:insertAll' (table expected, got " .. type(values) .. ')')
 
-    local valuesSize = getSize(values)
-    local newSize = size + valuesSize
-    setSize(self, newSize)
+    local valuesSize = List.size(values)
+    setSize(self, size + valuesSize)
 
     for i = size, index, -1 do
         rawset(self, i + valuesSize, self[i])
@@ -308,21 +304,21 @@ function List:insertAll(...)
 end
 
 function List:remove(index)
-    local size = getSize(self)
+    local size = List.size(self)
     index = index or size
     assert(type(index) == 'number', "bad argument #1 to 'List:remove' (number expected, got " .. type(index) .. ')')
     index = transformIndex(index, size)
     assert(index >= 1 and index <= size, "bad argument #1 to 'List:remove' (position out of bounds: " .. index .. ')')
     
     for i, v in List.iterator(self, index) do
-        self[i] = rawget(self, i + 1)
+        rawset(self, i, rawget(self, i + 1))
     end
     setSize(self, size - 1)
     return self
 end
 
 function List:set(index, value)
-    local size = getSize(self)
+    local size = List.size(self)
     assert(type(index) == 'number', "bad argument #1 to 'List:set' (number expected, got " .. type(index) .. ')')
     index = transformIndex(index, size)
     assert(index >= 1 and index <= size, "bad argument #1 to 'List:set' (position out of bounds: " .. index .. ')')
@@ -332,7 +328,7 @@ function List:set(index, value)
 end
 
 function List:get(index)
-    local size = getSize(self)
+    local size = List.size(self)
     assert(type(index) == 'number', "bad argument #1 to 'List:get' (number expected, got " .. type(index) .. ')')
     index = transformIndex(index, size)
     assert(index >= 1 and index <= size, "bad argument #1 to 'List:get' (position out of bounds: " .. index .. ')')
@@ -341,7 +337,7 @@ function List:get(index)
 end
 
 function List:fill(value, from, to)
-    local size = getSize(self)
+    local size = List.size(self)
     from = from or 1
     to = to or size    
     assert(type(from) == 'number', "bad argument #1 to 'List:fill' (number expected, got " .. type(from) .. ')')
@@ -359,9 +355,9 @@ function List:fill(value, from, to)
 end
 
 function List:slice(from, to)
-    local size = getSize(self)
+    local size = List.size(self)
     from = from or 1
-    to = to or getSize(self)    
+    to = to or List.size(self)    
     assert(type(from) == 'number', "bad argument #1 to 'List:unpack' (number expected, got " .. type(from) .. ')')
     from = transformIndex(from, size)
     assert(size == 0 or from >= 1 and from <= size, "bad argument #1 to 'List:unpack' (position out of bounds: " .. from .. ')')
@@ -381,7 +377,7 @@ function List:slice(from, to)
 end
 
 function List:unpack(from, to)
-    local size = getSize(self)
+    local size = List.size(self)
     from = from or 1
     to = to or size
     assert(type(from) == 'number', "bad argument #1 to 'List:unpack' (number expected, got " .. type(from) .. ')')
@@ -414,8 +410,16 @@ function List:contains(value)
     return List.indexOf(self, value) ~= nil
 end
 
+function List:size()
+    local size = self.size
+    if size and type(size) == 'number' and size >= 0 then
+        return size
+    end
+    return #self
+end
+
 function List:clear()
-    local size = getSize(self)
+    local size = List.size(self)
     for i = 1, size do
         rawset(self, i, nil)
     end
@@ -435,7 +439,7 @@ function List:sort(comparator)
 end
 
 function List:reverse()
-    local size = getSize(self)
+    local size = List.size(self)
     local newList = {size = size}
 
     for i, v in List.reverseIterator(self) do
@@ -449,7 +453,7 @@ function List:equals(other)
     if type(other) ~= 'table' then
         return false
     end
-    if getSize(self) ~= getSize(other) then
+    if List.size(self) ~= List.size(other) then
         return false
     end
     
@@ -470,11 +474,11 @@ end
 function List:combine(other)
     assert(type(other) == 'table', "bad argument #1 to 'List:combine' (table expected, got " .. type(other) .. ')')
 
-    local selfSize = getSize(self)
-    local otherSize = getSize(other)
+    local selfSize = List.size(self)
+    local otherSize = List.size(other)
     local newList = {size = selfSize + otherSize}
     for i = 1, selfSize do
-        newList[i] = self[i]
+        newList[i] = rawget(self, i)
     end
     for i = 1, otherSize do
         newList[i + selfSize] = other[i]
@@ -486,7 +490,7 @@ function List:times(times)
     assert(type(times) == 'number', "bad argument #1 to 'List:times' (number expected, got " .. type(times) .. ')')
     assert(times >= 0, "bad argument #1 to 'List:times' (positive number or zero expected, got " .. times .. ')')
     
-    local size = getSize(self)
+    local size = List.size(self)
     local newList = {size = size * times}
     for i = 1, times do
         for j, v in List.iterator(self) do
@@ -605,7 +609,7 @@ end
 function List:map(mapper)
     assert(type(mapper) == 'function', "bad argument #1 to 'List:map' (function expected, got " .. type(mapper) .. ')')
 
-    local newList = {size = getSize(self)}
+    local newList = {size = List.size(self)}
     for i, v in List.iterator(self) do
         newList[i] = mapper(v)
     end
@@ -656,7 +660,7 @@ function List:reduce(...)
     local args = table.pack(...)
     local reducer = args[1]
     local identity = args[2]
-    local size = getSize(self)
+    local size = List.size(self)
     local start = 1
     assert(type(reducer) == 'function', "bad argument #1 to 'List:reduce' (function expected, got " .. type(reducer) .. ')')
     
@@ -683,7 +687,7 @@ function List:reduceRight(...)
     local args = table.pack(...)
     local reducer = args[1]
     local identity = args[2]
-    local size = getSize(self)
+    local size = List.size(self)
     local start = size
     assert(type(reducer) == 'function', "bad argument #1 to 'List:reduceRight' (function expected, got " .. type(reducer) .. ')')
     
@@ -710,8 +714,8 @@ function List:zip(other, zipper, identity)
     assert(type(other) == 'table', "bad argument #1 to 'List:zip' (table expected, got " .. type(other) .. ')')
     assert(type(zipper) == 'function', "bad argument #2 to 'List:zip' (function expected, got " .. type(zipper) .. ')')
 
-    local selfSize = getSize(self)
-    local otherSize = getSize(other)
+    local selfSize = List.size(self)
+    local otherSize = List.size(other)
     local newList = {size = math.max(selfSize, otherSize)}
 
     function getSelf(i)

@@ -10,7 +10,7 @@ local function importList()
         })
 
         function List:new(input)
-            input.size = input.size or #input   
+            input.size = self.size(input)
             return input
         end
 
@@ -22,13 +22,21 @@ local function importList()
 
         function List:iterator()
             local i = 0
-            local size = self.size or #self
+            local size = List.size(self)
             return function()
                 i = i + 1
                 if i <= size then
                     return i, self[i]
                 end
             end
+        end
+
+        function List:size()
+            local size = self.size
+            if size and type(size) == 'number' and size >= 0 then
+                return size
+            end
+            return #self
         end
     end
     return List
@@ -60,13 +68,6 @@ local TO_STRING_SEEN_STORAGE = setmetatable({}, {__mode = 'k'})
 
 local function getData(self)
     return DATA_STORAGE[self] or self
-end
-
-local function getInputSize(input)
-    if input.size and type(input.size) == 'number' and input.size >= 0 then
-        return input.size
-    end
-    return #input
 end
 
 local function hasCustomToString(t)
@@ -102,7 +103,7 @@ end
 function Set:new(input)
     assert(type(input) == 'table', "bad argument #1 to 'Set:new' (table expected, got " .. type(input) .. ')')
 
-    local inputSize = getInputSize(input)
+    local inputSize = List.size(input)
 
     local newSet = {}
     DATA_STORAGE[newSet] = {}
@@ -156,6 +157,10 @@ function Set:new(input)
 
     rawset(self, '__lt', function(this, other)
         return self.isSubset(this, other)
+    end)
+
+    rawset(self, '__concat', function(this, other)
+        return tostring(this) .. tostring(other)
     end)
 
     rawset(self, '__tostring', function(this)
@@ -217,6 +222,17 @@ function Set.generate(generator, sizeOrCondition, identity)
     end
 end
 
+function Set:isSet()
+    local metatable = self
+    repeat
+        metatable = getmetatable(metatable)
+        if metatable == Set then
+            return true
+        end
+    until metatable == nil
+    return false
+end
+
 function Set:iterator()
     function nextValue(state, key)
         local k = next(state, key)
@@ -274,17 +290,6 @@ function Set:fullIterator()
     end
 end
 
-function Set:isSet()
-    local metatable = self
-    repeat
-        metatable = getmetatable(metatable)
-        if metatable == Set then
-            return true
-        end
-    until metatable == nil
-    return false
-end
-
 function Set:insert(value)
     getData(self)[unnillify(value)] = true
     return self
@@ -293,10 +298,9 @@ end
 function Set:insertAll(values)
     assert(type(values) == 'table', "bad argument #1 to 'Set:insertAll' (table expected, got " .. type(values) .. ')')
 
-    local size = getInputSize(values)
     local data = getData(self)
-    for i = 1, size do
-        data[unnillify(values[i])] = true
+    for i, v in List.iterator(values) do
+        data[unnillify(v)] = true
     end
     return self
 end
@@ -320,10 +324,9 @@ function Set:removeAll(values)
     values = values or {}
     assert(type(values) == 'table', "bad argument #1 to 'Set:removeAll' (table expected, got " .. type(values) .. ')')
 
-    local size = getInputSize(values)
     local data = getData(self)
-    for i = 1, size do
-        data[unnillify(values[i])] = nil
+    for i, v in List.iterator(values) do
+        data[unnillify(v)] = nil
     end
     return self
 end

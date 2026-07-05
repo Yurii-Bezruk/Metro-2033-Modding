@@ -115,8 +115,12 @@ function Map:new(input)
         return self.equals(this, other)
     end)
 
-    rawset(self, '__concat', function(this, other)
+    rawset(self, '__add', function(this, other)
         return self.combine(this, other)
+    end)
+
+    rawset(self, '__concat', function(this, other)
+        return tostring(this) .. tostring(other)
     end)
 
     rawset(self, '__tostring', function(this)

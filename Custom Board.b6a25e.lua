@@ -3,7 +3,7 @@ require("util.circle")
 local List = require("collections.List")
 local Map = require("collections.Map")
 local Set = require("collections.Set")
-require("collections.Queue")
+local Queue = require("collections.Queue")
 
 IGNORE_INACTIVE_ZONES = Global.getVar('IGNORE_INACTIVE_ZONES')
 ADMIN_BOARD_GUID = Global.getVar('ADMIN_BOARD_GUID')
@@ -153,7 +153,7 @@ function findPossibleAttacks(name, ownedStations, occupiedAbandonedStations)
     local queue = Queue()
 
     possibleAttacks:insertAll(ownedStations)
-    queue:put{station=stations[name], name=name, speed=speed}
+    queue:push{station=stations[name], name=name, speed=speed}
     
     while queue:size() > 0 do
         local next = queue:pop()
@@ -169,9 +169,9 @@ function findPossibleAttacks(name, ownedStations, occupiedAbandonedStations)
                     elseif neighbour.type == StationType.POLIS then
                         putPolisNeighbours(neighbour, neighbour_name, nextSpeed, queue)
                     elseif neighbour.type == StationType.NEUTRAL then
-                        queue:put{station=neighbour, name=neighbour_name, speed=nextSpeed}
+                        queue:push{station=neighbour, name=neighbour_name, speed=nextSpeed}
                     elseif neighbour.type == StationType.ABANDONED and occupiedAbandonedStations:contains(neighbour_name) then
-                        queue:put{station=neighbour, name=neighbour_name, speed=nextSpeed}
+                        queue:push{station=neighbour, name=neighbour_name, speed=nextSpeed}
                     end
                 end
             end
@@ -188,26 +188,26 @@ function putGanzaNeighbours(ganza, speed, occupiedAbandonedStations, queue)
         :map(|name, type| unpack{name, stations[name]})
         :filter(|name, station| stationAvailable(station))
         :filter(|name, station| station.type ~= StationType.ABANDONED or occupiedAbandonedStations:contains(name))
-        :forEach(|name, station| queue:put{station=station, name=name, speed=speed})
+        :forEach(|name, station| queue:push{station=station, name=name, speed=speed})
 end
 
 function putPolisNeighbours(polis, name, speed, queue)
-    queue:put{station=polis, name=name, speed=speed}
+    queue:push{station=polis, name=name, speed=speed}
     if polis.owner ~= nil then
         do return end
     end
     for neighbour_name, type in pairs(polis.neighbours) do
         local neighbour = stations[neighbour_name]
         if neighbour.type == StationType.POLIS then
-            queue:put{station=neighbour, name=neighbour_name, speed=speed}
+            queue:push{station=neighbour, name=neighbour_name, speed=speed}
             if neighbour.owner == nil then
                 neighbour.neighbours
                     :map(|name, type| unpack{name, stations[name]})
                     :filter(|name, station| stationAvailable(station))
-                    :forEach(|name, station| queue:put{station=station, name=name, speed=speed})
+                    :forEach(|name, station| queue:push{station=station, name=name, speed=speed})
             end
         elseif stationAvailable(neighbour) then
-            queue:put{station=neighbour, name=neighbour_name, speed=speed}
+            queue:push{station=neighbour, name=neighbour_name, speed=speed}
         end
     end
 end
@@ -232,7 +232,7 @@ end
 function findPossibleMoves(name, speed, isAnna)
     local possibleMoves = Set{}
     local queue = Queue()
-    queue:put{station=stations[name], name=name, speed=speed}
+    queue:push{station=stations[name], name=name, speed=speed}
     
     while queue:size() > 0 do
         local next = queue:pop()
@@ -246,7 +246,7 @@ function findPossibleMoves(name, speed, isAnna)
                     nextSpeed = next.speed - 1
                 end
                 if nextSpeed >= 0 then
-                    queue:put{station=neighbour, name=neighbour_name, speed=nextSpeed}
+                    queue:push{station=neighbour, name=neighbour_name, speed=nextSpeed}
                 end
             end
         end
