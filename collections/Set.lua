@@ -31,9 +31,10 @@ local function importList()
             end
         end
 
-        function List.size()
-            if self.size and type(self.size) == 'number' and self.size >= 0 then
-                return self.size
+        function List:size()
+            local size = self.size
+            if size and type(size) == 'number' and size >= 0 then
+                return size
             end
             return #self
         end
@@ -221,6 +222,17 @@ function Set.generate(generator, sizeOrCondition, identity)
     end
 end
 
+function Set:isSet()
+    local metatable = self
+    repeat
+        metatable = getmetatable(metatable)
+        if metatable == Set then
+            return true
+        end
+    until metatable == nil
+    return false
+end
+
 function Set:iterator()
     function nextValue(state, key)
         local k = next(state, key)
@@ -276,17 +288,6 @@ function Set:fullIterator()
         end
         return true, value
     end
-end
-
-function Set:isSet()
-    local metatable = self
-    repeat
-        metatable = getmetatable(metatable)
-        if metatable == Set then
-            return true
-        end
-    until metatable == nil
-    return false
 end
 
 function Set:insert(value)

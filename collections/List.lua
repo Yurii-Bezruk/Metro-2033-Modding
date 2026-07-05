@@ -85,12 +85,12 @@ local List = setmetatable({}, {
 function List:new(input)
     assert(type(input) == 'table', "bad argument #1 to 'List:new' (table expected, got " .. type(input) .. ')')
 
-    local newList = {
-        size = List.size(input)
-    }
-    for i = 1, newList.size do
+    local newList = {}
+    local size = List.size(input)
+    for i = 1, size do
         newList[i] = input[i]
     end
+    newList.size = size
 
     self.__index = function(this, index)
         if type(index) == 'number' then
@@ -289,7 +289,7 @@ function List:insertAll(...)
         index = transformIndex(index, size)
         assert(index >= 1 and index <= size + 1, "bad argument #1 to 'List:insertAll' (position out of bounds: " .. index .. ')')
     end
-    assert(type(values) == 'table', "bad argument #2 to 'List:insertAll' (table expected, got " .. type(index) .. ')')
+    assert(type(values) == 'table', "bad argument #2 to 'List:insertAll' (table expected, got " .. type(values) .. ')')
 
     local valuesSize = List.size(values)
     setSize(self, size + valuesSize)
@@ -411,8 +411,9 @@ function List:contains(value)
 end
 
 function List:size()
-    if self.size and type(self.size) == 'number' and self.size >= 0 then
-        return self.size
+    local size = self.size
+    if size and type(size) == 'number' and size >= 0 then
+        return size
     end
     return #self
 end
