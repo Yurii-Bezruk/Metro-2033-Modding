@@ -1,4 +1,4 @@
-local Deque = require 'collections.Deque'
+local Deque = require 'collections.queues.Deque'
 
 local DEQUE_STORAGE = setmetatable({}, {__mode = 'k'})
 

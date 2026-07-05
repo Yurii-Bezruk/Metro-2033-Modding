@@ -3,7 +3,7 @@ require("util.circle")
 local List = require("collections.List")
 local Map = require("collections.Map")
 local Set = require("collections.Set")
-local Queue = require("collections.Queue")
+local Queue = require("collections.queues.Queue")
 
 IGNORE_INACTIVE_ZONES = Global.getVar('IGNORE_INACTIVE_ZONES')
 ADMIN_BOARD_GUID = Global.getVar('ADMIN_BOARD_GUID')
