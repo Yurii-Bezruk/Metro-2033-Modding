@@ -155,7 +155,7 @@ function findPossibleAttacks(name, ownedStations, occupiedAbandonedStations)
     possibleAttacks:insertAll(ownedStations)
     queue:push{station=stations[name], name=name, speed=speed}
     
-    while queue:size() > 0 do
+    while queue.size > 0 do
         local next = queue:pop()
         possibleAttacks:insert(next.name)
     
@@ -234,7 +234,7 @@ function findPossibleMoves(name, speed, isAnna)
     local queue = Queue()
     queue:push{station=stations[name], name=name, speed=speed}
     
-    while queue:size() > 0 do
+    while queue.size > 0 do
         local next = queue:pop()
         possibleMoves:insert(next.name)
         for neighbour_name, type in pairs(next.station.neighbours) do

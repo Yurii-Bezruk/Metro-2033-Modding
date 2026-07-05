@@ -104,6 +104,9 @@ function Map:new(input)
         if found then
             return value
         end
+        if key == 'size' then
+            return self.size(this)
+        end
         return self[key]
     end)
 

@@ -88,7 +88,12 @@ function Deque:new(input)
         endIndex = size
     }
 
-    self.__index = self
+    self.__index = function(this, index)
+        if index == 'size' then
+            return self.size(this)
+        end
+        return self[index]
+    end
 
     self.__eq = function(this, other)
         return self.equals(this, other)

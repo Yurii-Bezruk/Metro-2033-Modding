@@ -124,7 +124,13 @@ function Set:new(input)
 
     rawset(self, '__index', function(this, key)
         local contains = self.contains(this, key)
-        return contains or self[key]
+        if contains then
+            return contains
+        end
+        if key == 'size' then
+            return self.size(this)
+        end
+        return self[key]
     end)
 
     rawset(self, '__newindex', function(this, key, value)

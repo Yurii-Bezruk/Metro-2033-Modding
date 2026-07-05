@@ -31,7 +31,23 @@ function Queue:new(input)
         DEQUE_STORAGE[newQueue] = Deque:new(input)
     end
 
-    self.__index = self
+    self.__index = function(this, index)
+        if type(index) == 'number' then
+            return getDeque(this)[index]
+        end
+        if index == 'size' then
+            return self.size(this)
+        end
+        return self[index]
+    end
+
+    self.__newindex = function(this, index, value)
+        if type(index) == 'number' then
+            getDeque(this)[index] = value
+            return
+        end
+        rawset(this, index, value)
+    end
 
     self.__eq = function(this, other)
         return self.equals(this, other)
@@ -151,7 +167,7 @@ function Queue:contains(value)
 end
 
 function Queue:size()
-    return getDeque(self):size()
+    return getDeque(self).size
 end
 
 function Queue:clear()
