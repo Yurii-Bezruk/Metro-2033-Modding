@@ -3,7 +3,7 @@ require("util.circle")
 local List = require("collections.List")
 local Map = require("collections.Map")
 local Set = require("collections.Set")
-local Queue = require("collections.Queue")
+local Queue = require("collections.queues.Queue")
 
 IGNORE_INACTIVE_ZONES = Global.getVar('IGNORE_INACTIVE_ZONES')
 ADMIN_BOARD_GUID = Global.getVar('ADMIN_BOARD_GUID')
@@ -155,7 +155,7 @@ function findPossibleAttacks(name, ownedStations, occupiedAbandonedStations)
     possibleAttacks:insertAll(ownedStations)
     queue:push{station=stations[name], name=name, speed=speed}
     
-    while queue:size() > 0 do
+    while queue.size > 0 do
         local next = queue:pop()
         possibleAttacks:insert(next.name)
     
@@ -234,7 +234,7 @@ function findPossibleMoves(name, speed, isAnna)
     local queue = Queue()
     queue:push{station=stations[name], name=name, speed=speed}
     
-    while queue:size() > 0 do
+    while queue.size > 0 do
         local next = queue:pop()
         possibleMoves:insert(next.name)
         for neighbour_name, type in pairs(next.station.neighbours) do
